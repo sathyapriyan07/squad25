@@ -12,7 +12,6 @@ import {
   Grid,
   InputLabel,
   MenuItem,
-  Pagination,
   Select,
   Stack,
   Tab,
@@ -42,7 +41,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useSquadStore } from '../../store/squadStore';
 import { LoadingState, SearchInput } from '../../components/common/CommonUi';
 import { TeamLogo } from '../../components/common/TeamLogo';
-import { PlayerCard } from '../../components/players/PlayerCard';
+import { PlayerGrid } from '../../components/players/player-grid';
 import { SquadOverview } from '../../components/squad/SquadOverview';
 import type { PlayerWithDetails, SquadShareSnapshot, ValidationIssue } from '../../types/ipl';
 
@@ -243,8 +242,6 @@ export function SquadBuilderPage() {
   }, [seasonPlayers, search, filter, sortBy]);
 
   const pageSize = 9;
-  const pageCount = Math.max(1, Math.ceil(filteredDatabase.length / pageSize));
-  const pagedPlayers = filteredDatabase.slice((page - 1) * pageSize, page * pageSize);
 
   const handleAddPlayer = (player: PlayerWithDetails) => {
     if (!activeRule) return;
@@ -399,37 +396,24 @@ export function SquadBuilderPage() {
         </CardContent>
       </Card>
 
-      {filteredDatabase.length > 0 ? (
-        <Grid container spacing={1.5}>
-          {pagedPlayers.map((player) => (
-            <Grid key={player.id} size={{ xs: 12 }}>
-              <PlayerCard
-                player={player}
-                accentColor={accentColor}
-                isSelected={draft.playerIds.includes(player.id)}
-                onAdd={handleAddPlayer}
-                onRemove={(item) => handleRemovePlayer(item.id)}
-                onInspect={(item) =>
-                  navigate(
-                    `/players/${item.id}?season=${effectiveSeasonId}&from=builder${squadId ? `&squadId=${squadId}` : ''}`
-                  )
-                }
-                minimal
-              />
-            </Grid>
-          ))}
-        </Grid>
-      ) : (
-        <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
-          No players match your search
-        </Typography>
-      )}
-
-      {pageCount > 1 && (
-        <Stack sx={{ alignItems: 'center' }}>
-          <Pagination count={pageCount} page={page} onChange={(_, value) => setPage(value)} size="small" />
-        </Stack>
-      )}
+      <PlayerGrid
+        players={filteredDatabase}
+        selectedPlayerIds={draft.playerIds}
+        onSelect={handleAddPlayer}
+        onRemove={(player) => handleRemovePlayer(player.id)}
+        onViewDetails={(player) =>
+          navigate(
+            `/players/${player.id}?season=${effectiveSeasonId}&from=builder${squadId ? `&squadId=${squadId}` : ''}`
+          )
+        }
+        accentColor={accentColor}
+        columns={{ xs: 2, sm: 2, md: 3, lg: 4, xl: 5 }}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        emptyTitle="No players match your filters"
+        emptyDescription="Try a different search or selection filter."
+      />
     </Stack>
   );
 

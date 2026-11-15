@@ -7,7 +7,6 @@ import {
   Grid,
   InputLabel,
   MenuItem,
-  Pagination,
   Select,
   Stack,
   ToggleButton,
@@ -19,8 +18,9 @@ import TableRowsIcon from '@mui/icons-material/TableRows';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router-dom';
 import { useCatalog } from '../../hooks/useCatalog';
+import { useAppStore } from '../../store/appStore';
 import { LoadingState, PageHeader, SearchInput } from '../../components/common/CommonUi';
-import { PlayerCard } from '../../components/players/PlayerCard';
+import { PlayerGrid } from '../../components/players/player-grid';
 import type { PlayerWithDetails } from '../../types/ipl';
 
 type FilterMode = 'ALL' | 'WK' | 'BAT' | 'AR' | 'BOWL' | 'IND' | 'OS' | 'CAP' | 'UNCAP';
@@ -28,7 +28,9 @@ type SortMode = 'overall' | 'name' | 'batting' | 'bowling' | 'runs' | 'wickets';
 
 export function PlayersPage() {
   const navigate = useNavigate();
-  const { activeSeason, seasonPlayers, isLoading } = useCatalog();
+  const { catalog, activeSeason, seasonPlayers, isLoading } = useCatalog();
+  const selectedTeamId = useAppStore((state) => state.selectedTeamId);
+  const accentColor = catalog?.teams.find((team) => team.id === selectedTeamId)?.primaryColor ?? '#3B82F6';
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterMode>('ALL');
   const [sortBy, setSortBy] = useState<SortMode>('overall');
@@ -72,9 +74,6 @@ export function PlayersPage() {
         return b.ratings.overall - a.ratings.overall;
       });
   }, [seasonPlayers, search, filter, sortBy, onlyEligible]);
-
-  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const columns: GridColDef<PlayerWithDetails>[] = [
     { field: 'name', headerName: 'Player', flex: 1.4, minWidth: 170 },
@@ -205,29 +204,18 @@ export function PlayersPage() {
       </Card>
 
       {viewMode === 'grid' ? (
-        <>
-          {paged.length === 0 ? (
-            <Card sx={{ p: 4, textAlign: 'center' }}>
-              <Typography variant="h6">No players match your filters</Typography>
-              <Typography variant="body2" color="text.secondary">
-                Try clearing your search or switching season eligibility filter.
-              </Typography>
-            </Card>
-          ) : (
-            <Grid container spacing={2}>
-              {paged.map((p) => (
-                <Grid key={p.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-                  <PlayerCard player={p} onInspect={(player) => navigate(`/players/${player.id}`)} />
-                </Grid>
-              ))}
-            </Grid>
-          )}
-          {pageCount > 1 && (
-            <Stack sx={{ pt: 1, alignItems: 'center' }}>
-              <Pagination count={pageCount} page={page} onChange={(_, v) => setPage(v)} color="primary" />
-            </Stack>
-          )}
-        </>
+        <PlayerGrid
+          players={filtered}
+          onViewDetails={(player) => navigate(`/players/${player.id}`)}
+          accentColor={accentColor}
+          showAction={false}
+          columns={{ xs: 2, sm: 3, md: 4, lg: 5, xl: 5 }}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          emptyTitle="No players match your filters"
+          emptyDescription="Try clearing your search or switching the eligibility filter."
+        />
       ) : (
         <Card sx={{ height: 560 }}>
           <DataGrid

@@ -19,7 +19,6 @@ import {
   Typography,
 } from '@mui/material';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
-import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import SaveIcon from '@mui/icons-material/Save';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
@@ -46,6 +45,7 @@ import { validateSquadAndXI } from '../../services/validation/validationEngine';
 import { useAppStore } from '../../store/appStore';
 import { EmptyState, LoadingState, PageHeader } from '../../components/common/CommonUi';
 import { PlayerAvatar, RoleBadge } from '../../components/common/PlayerAvatar';
+import { PlayerGrid } from '../../components/players/player-grid';
 import { TeamLogo } from '../../components/common/TeamLogo';
 import type { CustomSquad, PlayerWithDetails } from '../../types/ipl';
 
@@ -232,6 +232,7 @@ export function PlayingXIBuilderPage() {
           ? player.id
           : localSquad.wicketkeeperId,
     });
+    showSnackbar(`${player.shortName} added to Playing XI`, 'success');
   };
 
   const handleRemoveFromXI = (playerId: string) => {
@@ -244,6 +245,8 @@ export function PlayingXIBuilderPage() {
       viceCaptainId: localSquad.viceCaptainId === playerId ? null : localSquad.viceCaptainId,
       wicketkeeperId: localSquad.wicketkeeperId === playerId ? null : localSquad.wicketkeeperId,
     });
+    const player = playersMap.get(playerId);
+    if (player) showSnackbar(`${player.shortName} removed from Playing XI`, 'info');
   };
 
   const handleAutoPickXI = () => {
@@ -338,44 +341,22 @@ export function PlayingXIBuilderPage() {
           <Card>
             <CardContent sx={{ p: 2 }}>
               <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 700 }}>
-                Bench / Squad Pool ({benchPlayers.length})
+                Squad Pool ({squadPlayers.length})
               </Typography>
-              <Stack spacing={1} sx={{ maxHeight: 620, overflowY: 'auto' }}>
-                {benchPlayers.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
-                    All squad players are currently in your XI or add more players in the Squad Builder.
-                  </Typography>
-                ) : (
-                  benchPlayers.map((p) => (
-                    <Stack
-                      key={p.id}
-                      direction="row"
-                      spacing={1}
-                      sx={{
-                        p: 1,
-                        alignItems: 'center',
-                        borderRadius: '10px',
-                        bgcolor: 'rgba(255,255,255,0.03)',
-                        border: '1px solid rgba(255,255,255,0.06)',
-                      }}
-                    >
-                      <PlayerAvatar player={p} accentColor={accentColor} size={34} />
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>{p.name}</Typography>
-                        <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
-                          <RoleBadge role={p.primaryRole} />
-                          <Typography variant="caption" color="text.secondary">
-                            {p.isOverseas ? 'OS' : 'IND'} • {p.ratings.overall}
-                          </Typography>
-                        </Stack>
-                      </Box>
-                      <Button size="small" variant="outlined" onClick={() => handleAddToXI(p)} sx={{ minWidth: 36, px: 1 }}>
-                        <AddIcon fontSize="small" />
-                      </Button>
-                    </Stack>
-                  ))
-                )}
-              </Stack>
+              <PlayerGrid
+                players={squadPlayers}
+                selectedPlayerIds={localSquad.playingXiIds}
+                onSelect={handleAddToXI}
+                onRemove={(player) => handleRemoveFromXI(player.id)}
+                onViewDetails={(player) => navigate(`/players/${player.id}`)}
+                accentColor={accentColor}
+                actionLabel="Add to XI"
+                selectedActionLabel="In Playing XI"
+                compact
+                columns={{ xs: 2, sm: 3, md: 3, lg: 1, xl: 1 }}
+                emptyTitle="Squad is empty"
+                emptyDescription="Add players in the Squad Builder before setting a Playing XI."
+              />
             </CardContent>
           </Card>
         </Grid>
