@@ -42,7 +42,7 @@ type ImportType = 'players' | 'eligibility' | 'statistics';
 
 const TARGET_FIELDS: Record<ImportType, string[]> = {
   players: [
-    'name', 'shortName', 'dob', 'nationality', 'countryFlag', 'primaryRole',
+    'name', 'shortName', 'dob', 'nationality', 'countryFlag', 'primaryRole', 'biography',
     'battingStyle', 'bowlingStyle', 'isCapped', 'isWicketkeeper', 'isOverseas',
     'batting', 'powerHitting', 'technique', 'finishing', 'paceBowling',
     'spinBowling', 'wicketkeeping', 'fielding', 'overall',
@@ -56,6 +56,13 @@ interface ValidatedRow {
   data: Record<string, unknown>;
   valid: boolean;
   error?: string;
+}
+
+function getImportErrorMessage(error: unknown): string {
+  if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
+    return error.message;
+  }
+  return 'Unknown database error.';
 }
 
 export function ImportsManagementPage() {
@@ -162,105 +169,144 @@ export function ImportsManagementPage() {
     const validOnes = validatedRows.filter((r) => r.valid);
     if (validOnes.length === 0) return;
     setImporting(true);
+
+    const importRow = async (row: ValidatedRow): Promise<void> => {
+      const d = row.data;
+      if (importType === 'players') {
+        const name = String(d.name).trim();
+        const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const existingPlayer = catalog.players.find((player) => player.id === id);
+        await upsertPlayerFull(
+          {
+            id,
+            name,
+            shortName: String(d.shortName || name),
+            dob: String(d.dob ?? '').trim() || existingPlayer?.dob || null,
+            nationality: String(d.nationality),
+            countryFlag: String(d.countryFlag).toUpperCase(),
+            biography: String(d.biography ?? '').trim() || existingPlayer?.biography || '',
+            primaryRole: String(d.primaryRole).trim().toUpperCase() as PlayerRole,
+            battingStyle: String(d.battingStyle).trim(),
+            bowlingStyle: String(d.bowlingStyle ?? '').trim() || existingPlayer?.bowlingStyle || '',
+            isCapped: Boolean(d.isCapped === true || String(d.isCapped).toLowerCase() === 'true'),
+            isWicketkeeper: Boolean(d.isWicketkeeper === true || String(d.isWicketkeeper).toLowerCase() === 'true'),
+            isOverseas: Boolean(d.isOverseas === true || String(d.isOverseas).toLowerCase() === 'true'),
+          },
+          {
+            playerId: id,
+            batting: Number(d.batting) || 0,
+            powerHitting: Number(d.powerHitting) || 0,
+            technique: Number(d.technique) || 0,
+            finishing: Number(d.finishing) || 0,
+            paceBowling: Number(d.paceBowling) || 0,
+            spinBowling: Number(d.spinBowling) || 0,
+            wicketkeeping: Number(d.wicketkeeping) || 0,
+            fielding: Number(d.fielding) || 0,
+            overall: Number(d.overall) || 0,
+          }
+        );
+      } else if (importType === 'eligibility') {
+        const pid = String(d.playerId).trim();
+        const sid = String(d.seasonId).trim();
+        const player = catalog.players.find((p) => p.id === pid);
+        await upsertPlayerEligibility({
+          id: `${pid}_${sid}`,
+          playerId: pid,
+          seasonId: sid,
+          actualTeamId: String(d.actualTeamId || '') || null,
+          isAvailable:
+            String(d.isAvailable).trim() === ''
+              ? true
+              : d.isAvailable === true || String(d.isAvailable).toLowerCase() === 'true',
+          actualSquadStatus: (String(d.actualSquadStatus || 'Active') as ActualSquadStatus),
+          isOverseasSnapshot: player?.isOverseas ?? false,
+        });
+      } else {
+        const pid = String(d.playerId).trim();
+        const sid = String(d.seasonId || 'career').trim();
+        await upsertPlayerStatistics({
+          id: `${pid}_${sid}`,
+          playerId: pid,
+          seasonId: sid,
+          scope: sid === 'career' ? 'career' : 'season',
+          matches: Number(d.matches) || 0,
+          inningsBat: 0,
+          runs: Number(d.runs) || 0,
+          highestScore: '0',
+          battingAverage: Number(d.battingAverage) || 0,
+          strikeRate: Number(d.strikeRate) || 0,
+          centuries: 0,
+          halfCenturies: 0,
+          fours: 0,
+          sixes: 0,
+          inningsBowl: 0,
+          overs: 0,
+          runsConceded: 0,
+          wickets: Number(d.wickets) || 0,
+          economy: Number(d.economy) || 0,
+          bowlingAverage: 0,
+          bowlingStrikeRate: 0,
+          bestBowling: '0/0',
+          fiveWicketHauls: 0,
+          catches: 0,
+          runOuts: 0,
+          stumpings: 0,
+        });
+      }
+    };
+
     try {
-      for (const r of validOnes) {
-        const d = r.data;
-        if (importType === 'players') {
-          const name = String(d.name).trim();
-          const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-          await upsertPlayerFull(
-            {
-              id,
-              name,
-              shortName: String(d.shortName || name),
-              dob: String(d.dob ?? '').trim() || null,
-              nationality: String(d.nationality),
-              countryFlag: String(d.countryFlag).toUpperCase(),
-              biography: '',
-              primaryRole: String(d.primaryRole).toUpperCase() as PlayerRole,
-              battingStyle: String(d.battingStyle),
-              bowlingStyle: String(d.bowlingStyle ?? '').trim(),
-              isCapped: Boolean(d.isCapped === true || String(d.isCapped).toLowerCase() === 'true'),
-              isWicketkeeper: Boolean(d.isWicketkeeper === true || String(d.isWicketkeeper).toLowerCase() === 'true'),
-              isOverseas: Boolean(d.isOverseas === true || String(d.isOverseas).toLowerCase() === 'true'),
-            },
-            {
-              playerId: id,
-              batting: Number(d.batting) || 0,
-              powerHitting: Number(d.powerHitting) || 0,
-              technique: Number(d.technique) || 0,
-              finishing: Number(d.finishing) || 0,
-              paceBowling: Number(d.paceBowling) || 0,
-              spinBowling: Number(d.spinBowling) || 0,
-              wicketkeeping: Number(d.wicketkeeping) || 0,
-              fielding: Number(d.fielding) || 0,
-              overall: Number(d.overall) || 0,
-            }
-          );
-        } else if (importType === 'eligibility') {
-          const pid = String(d.playerId).trim();
-          const sid = String(d.seasonId).trim();
-          const player = catalog.players.find((p) => p.id === pid);
-          await upsertPlayerEligibility({
-            id: `${pid}_${sid}`,
-            playerId: pid,
-            seasonId: sid,
-            actualTeamId: String(d.actualTeamId || '') || null,
-            isAvailable:
-              String(d.isAvailable).trim() === ''
-                ? true
-                : d.isAvailable === true || String(d.isAvailable).toLowerCase() === 'true',
-            actualSquadStatus: (String(d.actualSquadStatus || 'Active') as ActualSquadStatus),
-            isOverseasSnapshot: player?.isOverseas ?? false,
-          });
-        } else if (importType === 'statistics') {
-          const pid = String(d.playerId).trim();
-          const sid = String(d.seasonId || 'career').trim();
-          await upsertPlayerStatistics({
-            id: `${pid}_${sid}`,
-            playerId: pid,
-            seasonId: sid,
-            scope: sid === 'career' ? 'career' : 'season',
-            matches: Number(d.matches) || 0,
-            inningsBat: 0,
-            runs: Number(d.runs) || 0,
-            highestScore: '0',
-            battingAverage: Number(d.battingAverage) || 0,
-            strikeRate: Number(d.strikeRate) || 0,
-            centuries: 0,
-            halfCenturies: 0,
-            fours: 0,
-            sixes: 0,
-            inningsBowl: 0,
-            overs: 0,
-            runsConceded: 0,
-            wickets: Number(d.wickets) || 0,
-            economy: Number(d.economy) || 0,
-            bowlingAverage: 0,
-            bowlingStrikeRate: 0,
-            bestBowling: '0/0',
-            fiveWicketHauls: 0,
-            catches: 0,
-            runOuts: 0,
-            stumpings: 0,
-          });
-        }
+      const failedImports: Array<{ rowIndex: number; message: string }> = [];
+      const concurrency = 10;
+      for (let start = 0; start < validOnes.length; start += concurrency) {
+        const batch = validOnes.slice(start, start + concurrency);
+        const results = await Promise.allSettled(batch.map(importRow));
+        results.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            const failure = {
+              rowIndex: batch[index].rowIndex,
+              message: getImportErrorMessage(result.reason),
+            };
+            failedImports.push(failure);
+            console.error(`Import failed for row ${failure.rowIndex}:`, result.reason);
+          }
+        });
       }
 
-      await recordImportLog({
-        id: `imp_${Date.now().toString(36)}`,
-        type: importType,
-        fileName,
-        totalRows: validatedRows.length,
-        importedRows: validOnes.length,
-        failedRows: validatedRows.length - validOnes.length,
-        importedBy: user?.uid || 'admin',
-        createdAt: new Date().toISOString(),
-      });
+      const importedCount = validOnes.length - failedImports.length;
+      try {
+        await recordImportLog({
+          id: `imp_${Date.now().toString(36)}`,
+          type: importType,
+          fileName,
+          totalRows: validatedRows.length,
+          importedRows: importedCount,
+          failedRows: validatedRows.length - importedCount,
+          importedBy: user?.uid || 'admin',
+          createdAt: new Date().toISOString(),
+        });
+      } catch (error) {
+        console.error('Records imported, but the import log could not be saved:', error);
+        void qc.invalidateQueries({ queryKey: ['catalog'] });
+        showSnackbar(
+          `Imported ${importedCount} records, but could not save the import log: ${getImportErrorMessage(error)}`,
+          'warning'
+        );
+        return;
+      }
 
-      await qc.invalidateQueries({ queryKey: ['catalog'] });
-      await qc.invalidateQueries({ queryKey: ['import_logs'] });
-      showSnackbar(`Imported ${validOnes.length} ${importType} records to Supabase!`, 'success');
+      void qc.invalidateQueries({ queryKey: ['catalog'] });
+      void qc.invalidateQueries({ queryKey: ['import_logs'] });
+
+      if (failedImports.length > 0) {
+        const firstFailure = failedImports[0];
+        showSnackbar(
+          `Imported ${importedCount} of ${validOnes.length} rows. Row ${firstFailure.rowIndex} failed: ${firstFailure.message}`,
+          importedCount > 0 ? 'warning' : 'error'
+        );
+      } else {
+        showSnackbar(`Imported ${importedCount} ${importType} records to Supabase!`, 'success');
+      }
     } finally {
       setImporting(false);
     }
