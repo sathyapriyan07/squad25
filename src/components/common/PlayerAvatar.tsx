@@ -44,6 +44,24 @@ export function PlayerAvatar({
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
 
   if (imageUrl && failedImageUrl !== imageUrl) {
+    if (minimal) {
+      return (
+        <Box
+          component="img"
+          src={imageUrl}
+          alt={player.name}
+          onError={() => setFailedImageUrl(imageUrl)}
+          sx={{
+            width: size,
+            height: size,
+            objectFit: 'cover',
+            borderRadius: '4px',
+            flexShrink: 0,
+          }}
+        />
+      );
+    }
+
     return (
       <Avatar
         sx={{

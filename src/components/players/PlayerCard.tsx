@@ -47,29 +47,23 @@ export function PlayerCard({
           boxShadow: 'none',
         }}
       >
-        <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+        <CardContent sx={{ p: 1.5, pb: 0, '&:last-child': { pb: 0 } }}>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <PlayerAvatar player={player} accentColor={accentColor} size={36} minimal />
+            <Box sx={{ alignSelf: 'flex-end', lineHeight: 0 }}>
+              <PlayerAvatar player={player} accentColor={accentColor} size={48} minimal />
+            </Box>
             <Stack direction="row" spacing={1} sx={{ flex: 1, minWidth: 0, alignItems: 'center' }}>
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline', justifyContent: 'space-between' }}>
-                  <Typography variant="body2" noWrap sx={{ flex: 1, minWidth: 0, fontWeight: 500 }}>
+                  <Typography variant="body2" noWrap sx={{ flex: 1, minWidth: 0, fontWeight: 500, fontSize: '0.8rem' }}>
                     {player.name}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary" className="tabular-nums" sx={{ flexShrink: 0 }}>
+                  <Typography variant="caption" color="text.secondary" className="tabular-nums" sx={{ flexShrink: 0, fontSize: '0.68rem' }}>
                     OVR {player.ratings.overall}
                   </Typography>
                 </Stack>
-                <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+                <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block', fontSize: '0.68rem' }}>
                   {identity}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  color={isAvailable ? 'text.secondary' : 'warning.main'}
-                  noWrap
-                  sx={{ display: 'block' }}
-                >
-                  {isAvailable ? 'Eligible' : 'Unavailable'} · {player.careerStats.matches} matches
                 </Typography>
               </Box>
               <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', flexShrink: 0 }}>
@@ -89,7 +83,7 @@ export function PlayerCard({
                     color="inherit"
                     disabled={!isAvailable && !isSelected}
                     onClick={() => (isSelected && onRemove ? onRemove(player) : onAdd(player))}
-                    sx={{ minWidth: 56, px: 1, borderColor: 'divider' }}
+                    sx={{ minWidth: 56, px: 1, borderColor: 'divider', fontSize: '0.75rem' }}
                   >
                     {isSelected ? 'Remove' : isAvailable ? 'Add' : 'Unavailable'}
                   </Button>
@@ -184,17 +178,6 @@ export function PlayerCard({
           <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
             {player.battingStyle} • {player.bowlingStyle}
           </Typography>
-          <Stack direction="row" spacing={1.5} sx={{ mt: 0.75 }} className="tabular-nums">
-            <Typography variant="caption" color="text.primary" sx={{ fontWeight: 600 }}>
-              Mat: {player.careerStats.matches}
-            </Typography>
-            <Typography variant="caption" color="text.primary" sx={{ fontWeight: 600 }}>
-              Runs: {player.careerStats.runs}
-            </Typography>
-            <Typography variant="caption" color="text.primary" sx={{ fontWeight: 600 }}>
-              Wkts: {player.careerStats.wickets}
-            </Typography>
-          </Stack>
         </Box>
 
         <Stack direction="row" spacing={1} sx={{ mt: 'auto', pt: 0.5 }}>
@@ -222,7 +205,7 @@ export function PlayerCard({
                 '&:hover': !isSelected && isAvailable ? { bgcolor: accentColor, filter: 'brightness(0.92)' } : undefined,
               }}
             >
-              {!isAvailable ? 'Not Eligible' : isSelected ? 'In Squad' : 'Add to Squad'}
+              {!isAvailable ? 'Unavailable' : isSelected ? 'In Squad' : 'Add to Squad'}
             </Button>
           )}
         </Stack>
