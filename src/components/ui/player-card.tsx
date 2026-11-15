@@ -251,7 +251,7 @@ function PlayerCard({
                 size="medium"
                 variant={selected ? 'outlined' : 'contained'}
                 disabled={actionDisabled}
-                startIcon={selected ? <CheckIcon /> : selected ? undefined : isUnavailable ? undefined : <AddIcon />}
+                startIcon={selected ? <CheckIcon /> : isUnavailable ? undefined : <AddIcon />}
                 onClick={handleAction}
                 aria-label={
                   selected
@@ -267,6 +267,7 @@ function PlayerCard({
                   bgcolor: selected ? 'transparent' : accentColor,
                   fontSize: '0.58rem',
                   letterSpacing: '0.035em',
+                  textTransform: 'uppercase',
                   '&:hover': {
                     borderColor: selected ? accentColor : 'transparent',
                     bgcolor: selected ? `${accentColor}18` : accentColor,
