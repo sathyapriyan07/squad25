@@ -1,0 +1,6 @@
+{
+  "name": "IPL Squad Builder",
+  "description": "Build custom IPL franchise squads across seasons, configure Playing XIs with Impact Player rules, analyze team ratings, and compare or share squads.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

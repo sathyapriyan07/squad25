@@ -1,0 +1,1401 @@
+# IPL SQUAD BUILDER — FULL APPLICATION DEVELOPMENT SPECIFICATION
+
+## 1. PROJECT OVERVIEW
+
+Build a complete, production-ready web application called **IPL Squad Builder**.
+
+The application allows users to create custom squads for all 10 IPL franchises across multiple IPL seasons.
+
+The concept is inspired by IPL auction and franchise management platforms, but it is NOT an auction application.
+
+There must be:
+- No bidding.
+- No auctioneer.
+- No bidding rounds.
+- No auction purse deduction.
+- No player bidding system.
+
+Instead, users directly select players from a season-specific player database and construct their own franchise squads.
+
+Users should be able to:
+1. Select an IPL season.
+2. Select one or more franchises.
+3. Build custom squads through direct player selection.
+4. Manage Indian and overseas player composition.
+5. Create a Playing XI.
+6. Assign captain and vice-captain.
+7. Select Impact Player and substitutes according to season rules.
+8. View team strength ratings.
+9. Compare multiple custom squads.
+10. Save, edit, duplicate and share squads.
+
+This must be a functional application, not just a static UI prototype.
+
+---
+
+# 2. TECHNOLOGY STACK
+
+### Frontend
+- React
+- Vite
+- TypeScript
+- Material UI (MUI)
+- Material UI Icons
+- MUI X Data Grid where appropriate
+- React Router DOM
+- TanStack Query
+- Zustand for application-level state
+- React Hook Form
+- Zod
+- Recharts for analytics
+- dnd-kit for drag-and-drop
+- Framer Motion for subtle animations
+
+### Backend
+- Supabase
+- PostgreSQL
+- Supabase Authentication
+- Supabase Storage
+- Supabase Row Level Security
+
+### UI requirements
+
+Use Material UI as the primary UI framework.
+
+Do not use Tailwind CSS, Bootstrap, shadcn/ui or a separate component library.
+
+Use:
+- MUI ThemeProvider
+- createTheme
+- CssBaseline
+- MUI Grid
+- MUI Stack
+- MUI Box
+- MUI Paper
+- MUI Card
+- MUI Dialog
+- MUI Drawer
+- MUI Tabs
+- MUI Table
+- MUI DataGrid
+- MUI Chip
+- MUI Avatar
+- MUI Tooltip
+- MUI Menu
+- MUI Select
+- MUI TextField
+- MUI Autocomplete
+- MUI Snackbar
+- MUI Alert
+- MUI Skeleton
+- MUI CircularProgress
+- MUI LinearProgress
+
+All UI components must use consistent MUI styling and theme tokens.
+
+---
+
+# 3. DESIGN DIRECTION
+
+Create a premium cricket franchise management platform.
+
+Visual inspiration:
+- Apple TV interface.
+- Modern sports analytics dashboards.
+- Professional cricket management applications.
+- Premium OTT platforms.
+- Modern franchise roster management interfaces.
+
+### Overall visual style
+
+Use a dark-first design.
+
+Background:
+- Main background: #090B10
+- Secondary background: #10141C
+- Card background: #151B25
+- Elevated surface: #1C2430
+- Border: rgba(255,255,255,0.08)
+
+Typography:
+- Primary font: Inter
+- Secondary font: Space Grotesk
+- Numbers and analytics: Inter with tabular numerals
+
+Text:
+- Primary: #F5F7FA
+- Secondary: #A0A9B7
+- Muted: #687386
+
+Status colours:
+- Success: #22C55E
+- Warning: #F59E0B
+- Error: #EF4444
+- Information: #3B82F6
+
+### Team-specific colours
+
+Use franchise colours dynamically.
+
+- CSK: Yellow and navy.
+- MI: Blue and gold.
+- RCB: Red and black.
+- KKR: Purple and gold.
+- SRH: Orange and black.
+- RR: Pink and blue.
+- DC: Blue and red.
+- PBKS: Red and silver.
+- GT: Navy and gold.
+- LSG: Blue and orange.
+
+Team colours must be used for selected team branding, accent borders, selected states, progress indicators and franchise-specific headers.
+
+Do not colour the entire application according to one franchise. Only franchise-specific components should change their accent colour.
+
+### UI rules
+
+- Rounded cards: 12–18px.
+- Buttons: 8–12px radius.
+- Use subtle borders instead of excessive shadows.
+- Use glass effects sparingly.
+- Avoid oversized gradients.
+- Use high-quality player portraits.
+- Use official team logos where available.
+- Maintain clear visual hierarchy.
+- Use skeleton loading states.
+- Add empty states and error states.
+- Avoid unnecessary decorative elements.
+- All screens must be responsive.
+
+Desktop should feel like a professional sports management dashboard.
+
+Mobile should use compact cards, bottom navigation where appropriate, and mobile-friendly drawers.
+
+---
+
+# 4. APPLICATION ROUTES
+
+Create the following routes.
+
+PUBLIC:
+- /
+- /seasons
+- /franchises
+- /players
+- /squad/:shareSlug
+- /login
+- /register
+
+AUTHENTICATED:
+- /dashboard
+- /builder
+- /builder/:squadId
+- /playing-xi/:squadId
+- /comparison
+- /analytics/:squadId
+- /saved-squads
+- /profile
+- /settings
+
+ADMIN:
+- /admin
+- /admin/seasons
+- /admin/teams
+- /admin/players
+- /admin/player-statistics
+- /admin/player-ratings
+- /admin/eligibility
+- /admin/rules
+- /admin/imports
+- /admin/squads
+- /admin/users
+
+Implement route protection and role-based authorization.
+
+---
+
+# 5. GLOBAL APPLICATION LAYOUT
+
+## Desktop navigation
+
+Create a persistent left sidebar.
+
+Sidebar width:
+- Expanded: approximately 250px.
+- Collapsed: approximately 76px.
+
+Sidebar structure:
+
+LOGO
+IPL SQUAD BUILDER
+
+MAIN
+- Overview
+- Build Squad
+- Players
+- Franchises
+- Compare Squads
+- Saved Squads
+
+MANAGEMENT
+- Team Analytics
+- Playing XI Builder
+
+BOTTOM
+- Settings
+- Profile
+- Logout
+
+Use appropriate Material UI icons.
+
+Highlight the active route with:
+- Team accent colour.
+- Subtle background.
+- Left indicator.
+- White text.
+
+## Top application bar
+
+Include:
+- Sidebar toggle.
+- Breadcrumbs.
+- Current season selector.
+- Notifications icon.
+- User avatar.
+- Profile menu.
+
+The top bar must remain compact.
+
+## Mobile layout
+
+- Compact top navigation.
+- Hamburger drawer.
+- Bottom navigation for primary actions.
+- Sticky action buttons on the squad builder.
+- Responsive player card grid.
+- Full-width mobile dialogs.
+
+---
+
+# 6. HOME PAGE
+
+Route: /
+
+Create a cinematic homepage.
+
+### Hero section
+
+Use a large stadium background with a dark overlay.
+
+Headline:
+
+BUILD YOUR DREAM IPL FRANCHISE
+
+Subtitle:
+
+Pick your players. Create your squad. Build your ultimate Playing XI.
+
+Buttons:
+- Build Your Squad
+- Explore Players
+
+Display selected season and a season selection control.
+
+### Quick actions
+
+Create four cards:
+
+1. Create New Squad
+2. Browse Players
+3. Compare Squads
+4. Saved Squads
+
+### Franchise section
+
+Display all 10 IPL franchises in a responsive grid.
+
+Each card must contain:
+- Team logo.
+- Team name.
+- Short code.
+- Franchise colours.
+- View franchise button.
+
+### Recent squads
+
+Show recently created squads with:
+- Squad name.
+- Franchise.
+- Season.
+- Player count.
+- Team rating.
+- Last updated.
+
+### Statistics
+
+Display:
+- Total squads created.
+- Total players available.
+- Total franchises.
+- Total saved squads.
+
+---
+
+# 7. SEASON MANAGEMENT AND SELECTION
+
+Users can create squads across multiple IPL seasons.
+
+Support seasons from IPL 2008 onwards, with future seasons configurable through the admin panel.
+
+Season selector should be a dropdown or season card grid.
+
+Each season stores:
+- Season year.
+- Season name.
+- Start and end dates, if known.
+- Participating teams.
+- Applicable squad rules.
+- Impact Player regulation status.
+- Active/inactive status.
+
+Do not assume all 10 current franchises existed in historical seasons.
+
+Only display teams that participated in the selected season.
+
+A player's eligibility must be season-specific.
+
+Historical player records must not be automatically carried into future seasons.
+
+---
+
+# 8. FRANCHISE SELECTION
+
+Display all participating franchises for the selected season.
+
+Each franchise card should show:
+- Official logo.
+- Team name.
+- Team abbreviation.
+- Primary colour.
+- Actual historical squad size, where available.
+- Create custom squad button.
+
+Users can create separate custom squads for multiple franchises.
+
+Allow multiple custom squads for the same franchise and season.
+
+Examples:
+- CSK Dream Squad 1.
+- CSK Balanced Squad.
+- CSK All-Rounder Squad.
+
+---
+
+# 9. SQUAD BUILDER — CORE MODULE
+
+Route: /builder
+
+This is the most important page.
+
+Create a professional three-section desktop layout.
+
+### Header
+
+Display:
+- Selected season.
+- Selected franchise.
+- Custom squad name.
+- Save button.
+- Share button.
+- Squad completion status.
+
+### Main workspace
+
+LEFT: PLAYER DATABASE
+
+CENTRE: PLAYER SELECTION AREA
+
+RIGHT: SQUAD OVERVIEW
+
+On smaller screens, make these sections accessible through tabs or drawers.
+
+## 9.1 Player database
+
+Display players as cards.
+
+Each player card must contain:
+
+- Player photograph.
+- Full name.
+- Nationality.
+- Country flag.
+- Player role.
+- Batting style.
+- Bowling style.
+- Capped/uncapped status.
+- Indian/overseas label.
+- Season availability.
+- Overall rating.
+- Add to squad button.
+
+### Player filters
+
+- All players.
+- Wicketkeepers.
+- Batters.
+- All-rounders.
+- Bowlers.
+- Indian players.
+- Overseas players.
+- Capped players.
+- Uncapped players.
+
+### Search
+
+Provide instant search by:
+- Player name.
+- Nationality.
+- Role.
+- Previous franchise.
+
+### Sorting
+
+- Alphabetical.
+- Overall rating.
+- Batting rating.
+- Bowling rating.
+- IPL runs.
+- IPL wickets.
+
+### Player selection interaction
+
+When the user selects Add to Squad:
+
+1. Validate eligibility.
+2. Validate squad restrictions.
+3. Insert the player into the selected squad.
+4. Update the squad player list.
+5. Update player counters.
+6. Update role distribution.
+7. Update team ratings.
+8. Show an MUI Snackbar confirmation.
+
+When the selection is invalid, show an MUI Alert or Dialog explaining the reason.
+
+Do not silently fail.
+
+A player selected in one custom squad must remain available for other independently created squads.
+
+Prevent duplicates only within the same custom squad.
+
+## 9.2 Player detail dialog
+
+Clicking a player should open a detailed MUI Dialog.
+
+Display:
+- Large player portrait.
+- Full name.
+- Country.
+- Role.
+- Biography.
+- Batting style.
+- Bowling style.
+- IPL career statistics.
+- Season-specific statistics.
+- Ratings.
+- Previous IPL teams.
+- Current selected squad status.
+
+Tabs:
+- Overview.
+- Batting statistics.
+- Bowling statistics.
+- IPL history.
+- Ratings.
+
+---
+
+# 10. SQUAD OVERVIEW PANEL
+
+Display a continuously updated squad summary.
+
+Metrics:
+
+- Total selected players.
+- Indian players.
+- Overseas players.
+- Wicketkeepers.
+- Batters.
+- All-rounders.
+- Bowlers.
+- Remaining slots.
+
+### Visual presentation
+
+Use:
+- MUI LinearProgress.
+- MUI Chip.
+- MUI Card.
+- MUI AvatarGroup.
+- MUI CircularProgress.
+
+### Squad player list
+
+Each row contains:
+- Player portrait.
+- Name.
+- Role.
+- Nationality.
+- Rating.
+- Remove action.
+
+Allow users to reorder the squad list.
+
+### Squad completion indicator
+
+Show:
+- Incomplete.
+- Valid.
+- Invalid.
+- Ready for Playing XI.
+
+---
+
+# 11. OFFICIAL SQUAD VALIDATION ENGINE
+
+Implement a configurable season-specific validation engine.
+
+For the 2025–2027 regulatory cycle, configure the relevant IPL squad rules, including:
+
+- Minimum squad size: 18.
+- Maximum squad size: 25.
+- Maximum overseas players: 8.
+- Playing XI: 11.
+- Maximum overseas players in XI: 4.
+- Applicable Impact Player restrictions.
+
+Do not hardcode these rules globally.
+
+Store them in the season_rules database table.
+
+The admin must be able to configure:
+- Minimum squad size.
+- Maximum squad size.
+- Maximum overseas players.
+- Maximum overseas players in Playing XI.
+- Minimum Indian players.
+- Impact Player enabled/disabled.
+- Substitute rules.
+- Other season-specific restrictions.
+
+Historical and future rules must be independently configurable.
+
+### Validation types
+
+HARD ERRORS:
+- Squad exceeds maximum size.
+- Overseas limit exceeded.
+- Duplicate player.
+- Player not eligible for the season.
+- Invalid Playing XI.
+- Invalid overseas composition.
+
+WARNINGS:
+- Squad below minimum size.
+- No wicketkeeper.
+- Insufficient bowling options.
+- Poor role balance.
+- Incomplete squad.
+
+The validation engine must return structured validation results containing:
+- Rule ID.
+- Severity.
+- Message.
+- Affected player, if applicable.
+- Suggested resolution.
+
+---
+
+# 12. PLAYING XI BUILDER
+
+Route: /playing-xi/:squadId
+
+Allow users to select 11 players from the saved squad.
+
+### Layout
+
+LEFT:
+Available squad players.
+
+CENTRE:
+Selected Playing XI.
+
+RIGHT:
+Team composition and validation.
+
+### Features
+
+- Add/remove players.
+- Drag-and-drop player ordering.
+- Batting order.
+- Captain selection.
+- Vice-captain selection.
+- Wicketkeeper designation.
+- Impact Player selection.
+- Substitute selection.
+
+### Player cards
+
+Display:
+- Portrait.
+- Name.
+- Role.
+- Nationality.
+- Rating.
+- Selection status.
+
+### Batting order
+
+Allow drag-and-drop ordering from position 1 to 11.
+
+### Captain and vice-captain
+
+Only one captain and one vice-captain are permitted.
+
+Captain and vice-captain must belong to the selected XI.
+
+### Wicketkeeper
+
+Allow selection of a designated wicketkeeper.
+
+Show a warning if no wicketkeeper is selected.
+
+### Impact Player
+
+Implement season-specific Impact Player logic.
+
+Allow the user to nominate the eligible substitute and the intended player to be replaced.
+
+Do not treat the Impact Player as a permanent 12th member of the starting XI.
+
+Apply the applicable overseas-player and participation restrictions.
+
+### Tactical formation
+
+Display a visual lineup divided into:
+
+- Opening batters.
+- Middle order.
+- Finishers.
+- All-rounders.
+- Pace attack.
+- Spin attack.
+
+Provide a separate batting order view and bowling resources view.
+
+---
+
+# 13. SQUAD COMPARISON
+
+Route: /comparison
+
+Allow comparison of two, three or four saved custom squads.
+
+### Selection interface
+
+Use MUI Autocomplete to select:
+- Season.
+- Franchise.
+- Custom squad.
+
+### Comparison categories
+
+- Overall rating.
+- Batting strength.
+- Bowling strength.
+- All-rounder strength.
+- Wicketkeeping.
+- Pace bowling.
+- Spin bowling.
+- Indian player depth.
+- Overseas player depth.
+- Bench strength.
+
+### UI
+
+Create:
+- Side-by-side comparison cards.
+- Recharts radar chart.
+- Bar chart.
+- Player comparison table.
+- Role distribution charts.
+- Strengths and weaknesses.
+
+### Player comparison
+
+Compare players by:
+- Position.
+- Role.
+- Batting rating.
+- Bowling rating.
+- Fielding rating.
+- Overall rating.
+- Statistics.
+
+### Best combined XI
+
+Optionally create a combined Playing XI from the compared squads.
+
+The combined XI must respect the selected season's eligibility rules.
+
+Allow users to save a comparison.
+
+Do not invent player statistics or rating values.
+
+---
+
+# 14. TEAM RATINGS AND ANALYTICS
+
+Route: /analytics/:squadId
+
+Create an analytics dashboard.
+
+### Player attributes
+
+Use admin-managed 0–100 ratings.
+
+Attributes:
+- Batting.
+- Power hitting.
+- Technique.
+- Finishing.
+- Pace bowling.
+- Spin bowling.
+- Wicketkeeping.
+- Fielding.
+- Overall rating.
+
+Support player-specific applicable attributes.
+
+### Team calculations
+
+Calculate:
+
+- Batting strength.
+- Bowling strength.
+- Pace strength.
+- Spin strength.
+- All-rounder strength.
+- Wicketkeeping strength.
+- Squad depth.
+- Overall team rating.
+
+Use configurable weighted formulas.
+
+Suggested initial formula:
+
+Overall = 35% Batting + 30% Bowling + 15% All-rounders + 10% Wicketkeeping + 10% Squad Depth.
+
+Normalize each component to 100.
+
+The formula should account for the best available role-specific players rather than simply averaging every squad member.
+
+Keep team rating logic separate from actual cricket statistics.
+
+### Charts
+
+Use Recharts:
+- Radar chart.
+- Bar chart.
+- Role distribution pie chart.
+- Rating comparison chart.
+
+---
+
+# 15. SAVE, DUPLICATE AND SHARE SQUADS
+
+Route: /saved-squads
+
+Users can:
+- Save squads.
+- Edit squads.
+- Duplicate squads.
+- Rename squads.
+- Delete squads.
+- Save multiple squads for the same team.
+- Save multiple seasons.
+
+Each squad stores:
+- Squad ID.
+- Owner ID.
+- Season ID.
+- Franchise ID.
+- Squad name.
+- Selected players.
+- Playing XI.
+- Captain.
+- Vice-captain.
+- Wicketkeeper.
+- Impact Player configuration.
+- Calculated team ratings.
+- Visibility.
+- Creation timestamp.
+- Updated timestamp.
+
+### Share functionality
+
+Generate a unique share slug.
+
+Public route:
+
+/squad/:shareSlug
+
+Display a beautiful read-only squad page.
+
+Include:
+- Franchise logo.
+- Team branding.
+- Season.
+- Squad name.
+- Complete squad.
+- Playing XI.
+- Captain.
+- Vice-captain.
+- Player portraits.
+- Team ratings.
+
+Sharing options:
+- Copy link.
+- WhatsApp.
+- Download squad image.
+
+Public links must not expose private user information.
+
+Only squad owners can modify their squads.
+
+---
+
+# 16. ADMIN DASHBOARD
+
+Route: /admin
+
+Build a separate administration interface using Material UI.
+
+Admin sidebar:
+
+- Dashboard.
+- Seasons.
+- Franchises.
+- Players.
+- Statistics.
+- Ratings.
+- Season Eligibility.
+- Squad Rules.
+- Excel Imports.
+- User Squads.
+- Users.
+- Settings.
+
+## 16.1 Admin dashboard
+
+Display:
+- Total players.
+- Total seasons.
+- Total franchises.
+- Total custom squads.
+- Active users.
+- Recent imports.
+- Recent squad activity.
+
+## 16.2 Season CRUD
+
+Admin can:
+- Create seasons.
+- Edit seasons.
+- Activate/deactivate seasons.
+- Configure participating teams.
+- Configure squad rules.
+- Configure Impact Player status.
+
+## 16.3 Franchise CRUD
+
+Admin can manage:
+- Franchise name.
+- Short code.
+- Logo.
+- Banner.
+- Primary colour.
+- Secondary colour.
+- Season participation.
+
+## 16.4 Player CRUD
+
+Admin can create, edit and delete player records.
+
+Player information:
+
+BASIC:
+- Name.
+- Short name.
+- Date of birth.
+- Nationality.
+- Country flag.
+- Player image.
+- Biography.
+
+CRICKET:
+- Primary role.
+- Secondary role.
+- Batting style.
+- Bowling style.
+- Capped/uncapped.
+- Wicketkeeper.
+- Indian/overseas classification.
+
+RATINGS:
+- Batting.
+- Power hitting.
+- Technique.
+- Finishing.
+- Pace bowling.
+- Spin bowling.
+- Wicketkeeping.
+- Fielding.
+- Overall.
+
+Use MUI Dialogs or dedicated form pages.
+
+Implement React Hook Form and Zod validation.
+
+## 16.5 Season eligibility
+
+A dedicated interface must allow admins to assign players to individual seasons.
+
+Fields:
+- Player.
+- Season.
+- Actual franchise.
+- Availability.
+- Actual squad status.
+- Overseas status snapshot, where relevant.
+
+Do not assume actual franchise membership determines custom squad eligibility.
+
+## 16.6 Statistics management
+
+Store season-wise player statistics.
+
+Batting:
+- Matches.
+- Innings.
+- Runs.
+- Highest score.
+- Average.
+- Strike rate.
+- Centuries.
+- Half-centuries.
+- Fours.
+- Sixes.
+
+Bowling:
+- Matches.
+- Innings.
+- Overs.
+- Runs conceded.
+- Wickets.
+- Economy.
+- Bowling average.
+- Strike rate.
+- Best bowling.
+- Five-wicket hauls.
+
+Fielding:
+- Catches.
+- Run-outs.
+- Stumpings.
+
+Maintain separate IPL career and season records.
+
+## 16.7 Excel imports
+
+Use SheetJS.
+
+Features:
+- Download Excel template.
+- Upload XLSX/CSV.
+- Column mapping.
+- Preview records.
+- Validate records.
+- Detect duplicates.
+- Import valid rows.
+- Display failed rows.
+- Export import report.
+
+Import should support players, season eligibility and player statistics.
+
+---
+
+# 17. SUPABASE DATABASE SCHEMA
+
+Create proper PostgreSQL migrations.
+
+Suggested tables:
+
+1. profiles
+2. seasons
+3. teams
+4. season_teams
+5. players
+6. player_seasons
+7. player_statistics
+8. player_ratings
+9. season_rules
+10. custom_squads
+11. squad_players
+12. playing_xi
+13. squad_substitutes
+14. squad_ratings
+15. squad_shares
+16. squad_comparisons
+
+### Database requirements
+
+- UUID primary keys.
+- Foreign key constraints.
+- Appropriate indexes.
+- Unique constraints.
+- Timestamps.
+- Updated-at triggers.
+- Database transactions for multi-step operations where necessary.
+- RLS policies.
+- Proper cascade behaviour.
+- Admin role authorization.
+
+### Important relationships
+
+- One season has many participating teams.
+- One player can have many season records.
+- One season has one configurable rule set.
+- One user can own multiple squads.
+- One squad belongs to one season and one selected franchise.
+- One squad contains many players.
+- One squad has one or more saved Playing XI configurations, if supported by the product design.
+- One squad can have a share record.
+- One squad can have a rating snapshot.
+
+Prevent duplicate player selections using a unique constraint on squad_id and player_id.
+
+Keep player ratings and statistics separate from player master records.
+
+Do not store multiple player IDs as an unstructured comma-separated string.
+
+---
+
+# 18. AUTHENTICATION AND SECURITY
+
+Implement Supabase authentication.
+
+Support:
+- Email/password registration.
+- Login.
+- Logout.
+- Password reset.
+- Session persistence.
+
+Roles:
+- Admin.
+- User.
+
+Security:
+- Users can read public data.
+- Users can create their own squads.
+- Users can edit only their own squads.
+- Users cannot edit other users' squads.
+- Public share pages can read only explicitly shared squad data.
+- Only admins can manage seasons, players, franchises, ratings and rules.
+
+Never expose Supabase service-role credentials in frontend code.
+
+Use environment variables.
+
+---
+
+# 19. STATE MANAGEMENT AND PERFORMANCE
+
+Use:
+- TanStack Query for server data.
+- Zustand for local application state.
+- React Hook Form for forms.
+- Zod for validation.
+
+Separate:
+- Server state.
+- Form state.
+- UI state.
+- Squad selection state.
+
+Optimize:
+- Player search.
+- Player filters.
+- Large player tables.
+- Player image loading.
+- Squad updates.
+- Analytics recalculation.
+
+Use pagination or virtualization for large player databases.
+
+Avoid unnecessary database requests.
+
+Do not fetch the entire player database on every page interaction.
+
+---
+
+# 20. COMPONENT ARCHITECTURE
+
+Organize the application into reusable components.
+
+Suggested structure:
+
+src/
+  app/
+    router/
+    providers/
+    theme/
+
+  components/
+    layout/
+      AppLayout/
+      Sidebar/
+      Topbar/
+      MobileNavigation/
+
+    common/
+      PageHeader/
+      StatCard/
+      EmptyState/
+      LoadingState/
+      ConfirmDialog/
+      SearchInput/
+
+    players/
+      PlayerCard/
+      PlayerGrid/
+      PlayerFilters/
+      PlayerDetailDialog/
+      PlayerTable/
+
+    squad/
+      SquadHeader/
+      SquadOverview/
+      SquadPlayerList/
+      SquadComposition/
+      SquadValidation/
+      SquadActions/
+
+    playing-xi/
+      PlayingXIBuilder/
+      XIPlayerCard/
+      BattingOrder/
+      CaptainSelector/
+      ImpactPlayerSelector/
+      TacticalFormation/
+
+    analytics/
+      TeamRatingCard/
+      TeamRadarChart/
+      RoleDistribution/
+      SquadComparisonChart/
+
+    franchises/
+      FranchiseCard/
+      FranchiseGrid/
+
+  pages/
+    Home/
+    Dashboard/
+    Seasons/
+    Franchises/
+    Players/
+    SquadBuilder/
+    PlayingXI/
+    Comparison/
+    Analytics/
+    SavedSquads/
+    SharedSquad/
+    Profile/
+    Settings/
+
+    admin/
+      AdminDashboard/
+      SeasonsManagement/
+      TeamsManagement/
+      PlayersManagement/
+      StatisticsManagement/
+      RatingsManagement/
+      EligibilityManagement/
+      RulesManagement/
+      ImportsManagement/
+      SquadManagement/
+      UserManagement/
+
+  services/
+    supabase/
+    players/
+    seasons/
+    squads/
+    validation/
+    ratings/
+    comparison/
+    imports/
+
+  store/
+    authStore.ts
+    appStore.ts
+    squadStore.ts
+
+  hooks/
+  types/
+  utils/
+
+  assets/
+
+  main.tsx
+  App.tsx
+
+Keep files modular and maintainable.
+
+Avoid placing the entire application in one large component.
+
+---
+
+# 21. FUNCTIONAL REQUIREMENTS
+
+Every visible interactive control must work.
+
+Examples:
+- Navigation links must navigate.
+- Add player must update the squad.
+- Remove player must update the squad.
+- Search must filter players.
+- Filters must work together.
+- Save must persist to Supabase.
+- Edit must load the existing squad.
+- Duplicate must create a separate squad.
+- Share must generate a working URL.
+- Comparison must calculate real values from selected squads.
+- Charts must use actual stored values.
+- Admin CRUD must persist data.
+- Excel import must actually import records.
+
+Never use hardcoded fake statistics to make the interface appear functional.
+
+If the database is empty, show a useful empty state and admin import instructions.
+
+Use realistic sample data only for clearly labelled development/demo environments.
+
+---
+
+# 22. IMPLEMENTATION PHASES
+
+Build in the following order.
+
+PHASE 1:
+- Project initialization.
+- MUI theme.
+- Application layout.
+- Sidebar.
+- Topbar.
+- Responsive navigation.
+- Supabase connection.
+- Authentication.
+
+PHASE 2:
+- Seasons CRUD.
+- Franchises CRUD.
+- Player database.
+- Player profiles.
+- Season eligibility.
+- Admin Excel import.
+
+PHASE 3:
+- Squad creation.
+- Player selection.
+- Player filters.
+- Squad overview.
+- Validation engine.
+- Save and edit squads.
+
+PHASE 4:
+- Playing XI builder.
+- Captain/vice-captain.
+- Wicketkeeper.
+- Impact Player.
+- Tactical formation.
+
+PHASE 5:
+- Player ratings.
+- Team ratings.
+- Analytics dashboard.
+- Squad comparison.
+
+PHASE 6:
+- Saved squads.
+- Duplicate squads.
+- Shareable links.
+- Public squad page.
+- Squad image export.
+
+PHASE 7:
+- Full responsive optimization.
+- Security testing.
+- Validation testing.
+- Performance optimization.
+- Production deployment.
+
+---
+
+# 23. FINAL QUALITY REQUIREMENTS
+
+The completed application must:
+
+1. Use Material UI consistently throughout.
+2. Have a premium professional cricket management UI.
+3. Work on desktop, tablet and mobile.
+4. Support multiple IPL seasons.
+5. Support all season-participating franchises.
+6. Use real, admin-managed player records.
+7. Implement official configurable season-specific restrictions.
+8. Support unlimited independent custom squads, subject to sensible application limits.
+9. Support a functional Playing XI builder.
+10. Calculate actual ratings from stored rating inputs.
+11. Compare two to four squads.
+12. Support persistent saving and editing.
+13. Support secure shareable squad pages.
+14. Have a complete admin dashboard.
+15. Use Supabase for persistent data.
+16. Include proper loading, empty, error and success states.
+17. Have no broken navigation or placeholder buttons.
+18. Have no fake functionality.
+19. Have no exposed private credentials.
+20. Include database migrations and setup documentation.
+
+IMPORTANT DEVELOPMENT INSTRUCTIONS:
+
+- Inspect the existing repository before making changes.
+- Preserve existing working functionality if extending an existing project.
+- Do not overwrite existing configuration files unnecessarily.
+- Build reusable MUI components.
+- Implement the database before relying on UI data.
+- Do not use localStorage as the primary database.
+- Do not hardcode player availability across seasons.
+- Do not confuse actual IPL franchise squads with custom user-created squads.
+- Do not assume historical seasons have current IPL teams or rules.
+- Do not invent player statistics.
+- Do not implement auction or bidding functionality.
+- Do not stop after creating the homepage.
+- Complete the modules in the specified implementation order.
+- Test every major user workflow before considering the application complete.
+
+DELIVERABLE:
+
+A fully functional, responsive, production-ready IPL Squad Builder built with React, Vite, TypeScript, Material UI and Supabase.
