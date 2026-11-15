@@ -232,10 +232,13 @@ export function PlayersManagementPage() {
 
   const onSubmit = async (vals: PlayerFormValues) => {
     const id = vals.id?.trim() || vals.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    let uploadedImageUrl: string | undefined;
+    let playerSaved = false;
+    let cleanupWarning: string | undefined;
     setSaving(true);
     try {
       const imageUrl = imageFile
-        ? await uploadCatalogImage(imageFile, 'players', id)
+        ? (uploadedImageUrl = await uploadCatalogImage(imageFile, 'players', id))
         : vals.imageUrl || '';
       const player: Player = {
         id,
@@ -277,12 +280,31 @@ export function PlayersManagementPage() {
       } else {
         await upsertPlayerFull(player, ratings);
       }
+      playerSaved = true;
       syncPlayerCatalog(player, ratings);
+      if (uploadedImageUrl && vals.imageUrl && isCatalogImageUrl(vals.imageUrl, 'players')) {
+        try {
+          await deleteCatalogImage(vals.imageUrl, 'players');
+        } catch (error) {
+          cleanupWarning = `Previous image could not be deleted: ${getErrorMessage(error)}`;
+        }
+      }
       setOpen(false);
       setImageFile(null);
-      showSnackbar(`Saved player ${player.name}`, 'success');
+      showSnackbar(
+        cleanupWarning ? `Saved player ${player.name}. ${cleanupWarning}` : `Saved player ${player.name}`,
+        cleanupWarning ? 'warning' : 'success'
+      );
     } catch (error) {
-      showSnackbar(error instanceof Error ? error.message : 'Failed to save player.', 'error');
+      let message = error instanceof Error ? error.message : 'Failed to save player.';
+      if (uploadedImageUrl && !playerSaved) {
+        try {
+          await deleteCatalogImage(uploadedImageUrl, 'players');
+        } catch (cleanupError) {
+          message = `${message} Uploaded image cleanup failed: ${getErrorMessage(cleanupError)}`;
+        }
+      }
+      showSnackbar(message, 'error');
     } finally {
       setSaving(false);
     }
@@ -305,15 +327,16 @@ export function PlayersManagementPage() {
 
     setSaving(true);
     try {
-      await deleteCatalogImage(imageUrl, 'players');
+      await upsertPlayerFull({ ...player, imageUrl: '' }, ratingsMap.get(player.id));
+      syncPlayerCatalog({ ...player, imageUrl: '' }, ratingsMap.get(player.id));
       setValue('imageUrl', '', { shouldDirty: true });
       setImageFile(null);
 
       try {
-        await upsertPlayerFull({ ...player, imageUrl: '' }, ratingsMap.get(player.id));
-        syncPlayerCatalog({ ...player, imageUrl: '' }, ratingsMap.get(player.id));
+        await deleteCatalogImage(imageUrl, 'players');
       } catch (error) {
-        throw new Error(`Image deleted from storage, but the player record could not be updated: ${getErrorMessage(error)}`);
+        showSnackbar(`Player image removed, but the stored file could not be deleted: ${getErrorMessage(error)}`, 'warning');
+        return;
       }
 
       showSnackbar('Player image deleted.', 'success');

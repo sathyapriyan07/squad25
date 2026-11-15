@@ -89,17 +89,39 @@ export function TeamsManagementPage() {
     }
 
     setSaving(true);
+    let uploadedLogoUrl: string | undefined;
+    let teamSaved = false;
+    let cleanupWarning: string | undefined;
     try {
       const logoUrl = logoFile
-        ? await uploadCatalogImage(logoFile, 'teams', teamId)
+        ? (uploadedLogoUrl = await uploadCatalogImage(logoFile, 'teams', teamId))
         : form.logoUrl || '';
       await upsertTeam({ ...form, id: teamId, shortCode: normalizedShortCode, logoUrl });
+      teamSaved = true;
+      if (uploadedLogoUrl && form.logoUrl && isCatalogImageUrl(form.logoUrl, 'teams')) {
+        try {
+          await deleteCatalogImage(form.logoUrl, 'teams');
+        } catch (error) {
+          cleanupWarning = `Previous logo could not be deleted: ${getErrorMessage(error)}`;
+        }
+      }
       await qc.invalidateQueries({ queryKey: ['catalog'] });
       setOpen(false);
       setLogoFile(null);
-      showSnackbar(`Saved franchise ${form.name}`, 'success');
+      showSnackbar(
+        cleanupWarning ? `Saved franchise ${form.name}. ${cleanupWarning}` : `Saved franchise ${form.name}`,
+        cleanupWarning ? 'warning' : 'success'
+      );
     } catch (error) {
-      showSnackbar(getErrorMessage(error), 'error');
+      let message = getErrorMessage(error);
+      if (uploadedLogoUrl && !teamSaved) {
+        try {
+          await deleteCatalogImage(uploadedLogoUrl, 'teams');
+        } catch (cleanupError) {
+          message = `${message} Uploaded logo cleanup failed: ${getErrorMessage(cleanupError)}`;
+        }
+      }
+      showSnackbar(message, 'error');
     } finally {
       setSaving(false);
     }

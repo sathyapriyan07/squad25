@@ -24,7 +24,7 @@ export async function uploadCatalogImage(
 
   const safeId = itemId.toLowerCase().replace(/[^a-z0-9_-]+/g, '-');
   if (!safeId) throw new Error('Add a name or short code before uploading an image.');
-  const path = `${category}/${safeId}.${extension}`;
+  const path = `${category}/${safeId}-${crypto.randomUUID()}.${extension}`;
   const { error } = await supabase.storage.from(IMAGE_BUCKET).upload(path, file, {
     cacheControl: '3600',
     contentType: file.type,

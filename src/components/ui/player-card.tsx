@@ -4,7 +4,6 @@ import {
   Button,
   Card,
   CardContent,
-  Divider,
   IconButton,
   Stack,
   Tooltip,
@@ -237,8 +236,6 @@ function PlayerCard({
             </Typography>
           </Stack>
         </Stack>
-
-        <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
 
         {showAction && (
           <Tooltip
