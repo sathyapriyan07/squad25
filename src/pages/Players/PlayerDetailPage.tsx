@@ -132,7 +132,7 @@ export function PlayerDetailPage() {
   }
 
   const accentColor = player.actualTeam?.primaryColor || '#3B82F6';
-  const isAvailable = player.eligibility?.isAvailable ?? false;
+  const isAvailable = player.eligibility?.isAvailable !== false;
   const isOverseas = player.eligibility?.isOverseasSnapshot ?? player.isOverseas;
   const hasActiveDraft = Boolean(user && draft.ownerId === user.uid && draft.seasonId === activeSeason.id);
   const isInDraft = hasActiveDraft && draft.playerIds.includes(player.id);

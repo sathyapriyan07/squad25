@@ -33,12 +33,21 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCatalog } from '../../hooks/useCatalog';
-import { deletePlayer, upsertPlayerFull } from '../../services/dataService';
-import { uploadCatalogImage } from '../../services/supabase/storageService';
+import {
+  deletePlayer,
+  upsertPlayerFull,
+  upsertPlayerRatings,
+  type CatalogBundle,
+} from '../../services/dataService';
+import {
+  deleteCatalogImage,
+  isCatalogImageUrl,
+  uploadCatalogImage,
+} from '../../services/supabase/storageService';
 import { useAppStore } from '../../store/appStore';
 import { LoadingState, PageHeader, SearchInput } from '../../components/common/CommonUi';
 import { AdminLayout } from './AdminLayout';
-import type { Player } from '../../types/ipl';
+import type { Player, PlayerRatings } from '../../types/ipl';
 
 const playerSchema = z.object({
   id: z.string().optional(),
@@ -60,6 +69,13 @@ const playerSchema = z.object({
 
 type PlayerFormValues = z.infer<typeof playerSchema>;
 
+function getErrorMessage(error: unknown): string {
+  if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
+    return error.message;
+  }
+  return 'Failed to update player image.';
+}
+
 export function PlayersManagementPage() {
   const qc = useQueryClient();
   const showSnackbar = useAppStore((s) => s.showSnackbar);
@@ -69,7 +85,15 @@ export function PlayersManagementPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const { control, handleSubmit, reset, formState: { errors } } = useForm<PlayerFormValues>({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    getValues,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<PlayerFormValues>({
     resolver: zodResolver(playerSchema),
     defaultValues: {
       name: '',
@@ -92,6 +116,26 @@ export function PlayersManagementPage() {
   if (isLoading || !catalog) return <AdminLayout><LoadingState count={3} /></AdminLayout>;
 
   const ratingsMap = new Map(catalog.playerRatings.map((r) => [r.playerId, r]));
+  const currentImageUrl = watch('imageUrl');
+
+  const syncPlayerCatalog = (player: Player, ratings?: PlayerRatings) => {
+    qc.setQueryData<CatalogBundle>(['catalog'], (current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        players: current.players.some((item) => item.id === player.id)
+          ? current.players.map((item) => item.id === player.id ? player : item)
+          : [...current.players, player],
+        playerRatings: ratings
+          ? [
+              ...current.playerRatings.filter((item) => item.playerId !== ratings.playerId),
+              ratings,
+            ]
+          : current.playerRatings,
+      };
+    });
+    void qc.invalidateQueries({ queryKey: ['catalog'] });
+  };
 
   const filtered = catalog.players.filter((p) => {
     const q = search.trim().toLowerCase();
@@ -166,7 +210,7 @@ export function PlayersManagementPage() {
         isOverseas: vals.isOverseas,
       };
       const existingRatings = ratingsMap.get(id);
-      await upsertPlayerFull(player, {
+      const ratings: PlayerRatings = {
         ...(existingRatings || {
           playerId: id,
           batting: vals.overall,
@@ -180,8 +224,16 @@ export function PlayersManagementPage() {
         }),
         playerId: id,
         overall: vals.overall,
-      });
-      await qc.invalidateQueries({ queryKey: ['catalog'] });
+      };
+      if (catalog.players.some((item) => item.id === id)) {
+        await Promise.all([
+          upsertPlayerFull(player),
+          upsertPlayerRatings(ratings),
+        ]);
+      } else {
+        await upsertPlayerFull(player, ratings);
+      }
+      syncPlayerCatalog(player, ratings);
       setOpen(false);
       setImageFile(null);
       showSnackbar(`Saved player ${player.name}`, 'success');
@@ -196,6 +248,36 @@ export function PlayersManagementPage() {
     await deletePlayer(id);
     await qc.invalidateQueries({ queryKey: ['catalog'] });
     showSnackbar('Player removed', 'info');
+  };
+
+  const handleRemoveImage = async () => {
+    const id = getValues('id')?.trim();
+    const imageUrl = getValues('imageUrl');
+    const player = id ? catalog.players.find((item) => item.id === id) : undefined;
+    if (!player || !imageUrl) {
+      showSnackbar('Save the player before removing its uploaded image.', 'warning');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await deleteCatalogImage(imageUrl, 'players');
+      setValue('imageUrl', '', { shouldDirty: true });
+      setImageFile(null);
+
+      try {
+        await upsertPlayerFull({ ...player, imageUrl: '' }, ratingsMap.get(player.id));
+        syncPlayerCatalog({ ...player, imageUrl: '' }, ratingsMap.get(player.id));
+      } catch (error) {
+        throw new Error(`Image deleted from storage, but the player record could not be updated: ${getErrorMessage(error)}`);
+      }
+
+      showSnackbar('Player image deleted.', 'success');
+    } catch (error) {
+      showSnackbar(getErrorMessage(error), 'error');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -341,6 +423,11 @@ export function PlayersManagementPage() {
                     <Typography variant="caption" color="text.secondary">
                       {imageFile ? imageFile.name : 'JPG, PNG, WebP, GIF, or SVG; max 5 MB.'}
                     </Typography>
+                    {isCatalogImageUrl(currentImageUrl || '', 'players') && (
+                      <Button color="error" disabled={saving} onClick={handleRemoveImage}>
+                        Delete uploaded image
+                      </Button>
+                    )}
                   </Stack>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>

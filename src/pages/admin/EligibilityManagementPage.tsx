@@ -117,7 +117,7 @@ export function EligibilityManagementPage() {
                       <TableCell>
                         <Switch
                           size="small"
-                          checked={Boolean(elig?.isAvailable)}
+                          checked={elig?.isAvailable ?? true}
                           onChange={(e) => updateRow(p.id, { isAvailable: e.target.checked, isOverseas: p.isOverseas })}
                         />
                       </TableCell>

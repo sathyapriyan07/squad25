@@ -1,4 +1,4 @@
-import { isSupabaseConfigured, supabase } from './client';
+import { isSupabaseConfigured, supabase, supabaseUrl } from './client';
 
 const IMAGE_BUCKET = 'catalog-images';
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -33,4 +33,48 @@ export async function uploadCatalogImage(
   if (error) throw error;
 
   return supabase.storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
+function getCatalogImagePath(
+  publicUrl: string,
+  category: 'players' | 'teams'
+): string | null {
+  if (!supabase || !supabaseUrl) return null;
+
+  try {
+    const url = new URL(publicUrl);
+    const supabaseOrigin = new URL(supabaseUrl).origin;
+    const prefix = `/storage/v1/object/public/${IMAGE_BUCKET}/${category}/`;
+    if (url.origin !== supabaseOrigin || !url.pathname.startsWith(prefix)) return null;
+
+    const filename = decodeURIComponent(url.pathname.slice(prefix.length));
+    if (!/^[a-z0-9_-]+\.(jpg|png|webp|gif|svg)$/i.test(filename)) return null;
+    return `${category}/${filename}`;
+  } catch {
+    return null;
+  }
+}
+
+export function isCatalogImageUrl(
+  publicUrl: string,
+  category: 'players' | 'teams'
+): boolean {
+  return getCatalogImagePath(publicUrl, category) !== null;
+}
+
+export async function deleteCatalogImage(
+  publicUrl: string,
+  category: 'players' | 'teams'
+): Promise<void> {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+  }
+
+  const path = getCatalogImagePath(publicUrl, category);
+  if (!path) {
+    throw new Error('This image is not stored in the catalog image bucket.');
+  }
+
+  const { error } = await supabase.storage.from(IMAGE_BUCKET).remove([path]);
+  if (error) throw error;
 }

@@ -27,12 +27,23 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCatalog } from '../../hooks/useCatalog';
 import { deleteTeam, upsertTeam } from '../../services/dataService';
-import { uploadCatalogImage } from '../../services/supabase/storageService';
+import {
+  deleteCatalogImage,
+  isCatalogImageUrl,
+  uploadCatalogImage,
+} from '../../services/supabase/storageService';
 import { useAppStore } from '../../store/appStore';
 import { LoadingState, PageHeader } from '../../components/common/CommonUi';
 import { TeamLogo } from '../../components/common/TeamLogo';
 import { AdminLayout } from './AdminLayout';
 import type { Team } from '../../types/ipl';
+
+function getErrorMessage(error: unknown): string {
+  if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
+    return error.message;
+  }
+  return 'Failed to save franchise.';
+}
 
 export function TeamsManagementPage() {
   const qc = useQueryClient();
@@ -56,20 +67,39 @@ export function TeamsManagementPage() {
 
   if (isLoading || !catalog) return <AdminLayout><LoadingState count={3} /></AdminLayout>;
 
+  const normalizedShortCode = form.shortCode.trim().toUpperCase();
+  const teamId = form.id.trim() || normalizedShortCode.toLowerCase();
+  const duplicateShortCode = catalog.teams.find(
+    (team) => team.id !== form.id && team.shortCode.trim().toUpperCase() === normalizedShortCode
+  );
+  const duplicateTeamId = catalog.teams.find((team) => team.id === teamId && team.id !== form.id);
+
   const handleSave = async () => {
-    const id = form.id.trim() || form.shortCode.toLowerCase();
+    if (!form.name.trim() || !normalizedShortCode) {
+      showSnackbar('Franchise name and short code are required.', 'warning');
+      return;
+    }
+    if (duplicateShortCode) {
+      showSnackbar(`Short code ${normalizedShortCode} is already used by ${duplicateShortCode.name}.`, 'error');
+      return;
+    }
+    if (duplicateTeamId) {
+      showSnackbar(`A franchise with ID "${teamId}" already exists. Edit that franchise instead.`, 'error');
+      return;
+    }
+
     setSaving(true);
     try {
       const logoUrl = logoFile
-        ? await uploadCatalogImage(logoFile, 'teams', id)
+        ? await uploadCatalogImage(logoFile, 'teams', teamId)
         : form.logoUrl || '';
-      await upsertTeam({ ...form, id, logoUrl });
+      await upsertTeam({ ...form, id: teamId, shortCode: normalizedShortCode, logoUrl });
       await qc.invalidateQueries({ queryKey: ['catalog'] });
       setOpen(false);
       setLogoFile(null);
       showSnackbar(`Saved franchise ${form.name}`, 'success');
     } catch (error) {
-      showSnackbar(error instanceof Error ? error.message : 'Failed to save franchise.', 'error');
+      showSnackbar(getErrorMessage(error), 'error');
     } finally {
       setSaving(false);
     }
@@ -79,6 +109,34 @@ export function TeamsManagementPage() {
     await deleteTeam(id);
     await qc.invalidateQueries({ queryKey: ['catalog'] });
     showSnackbar('Franchise deleted', 'info');
+  };
+
+  const handleRemoveLogo = async () => {
+    const team = catalog.teams.find((item) => item.id === form.id);
+    if (!team || !form.logoUrl) {
+      showSnackbar('Save the franchise before removing its uploaded logo.', 'warning');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await deleteCatalogImage(form.logoUrl, 'teams');
+      setForm((current) => ({ ...current, logoUrl: '' }));
+      setLogoFile(null);
+
+      try {
+        await upsertTeam({ ...team, logoUrl: '' });
+        await qc.invalidateQueries({ queryKey: ['catalog'] });
+      } catch (error) {
+        throw new Error(`Logo deleted from storage, but the franchise record could not be updated: ${getErrorMessage(error)}`);
+      }
+
+      showSnackbar('Team logo deleted.', 'success');
+    } catch (error) {
+      showSnackbar(getErrorMessage(error), 'error');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -154,7 +212,14 @@ export function TeamsManagementPage() {
             <Stack spacing={2} sx={{ mt: 1 }}>
               <TextField label="Franchise Name" fullWidth value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               <Stack direction="row" spacing={2}>
-                <TextField label="Short Code" fullWidth value={form.shortCode} onChange={(e) => setForm({ ...form, shortCode: e.target.value.toUpperCase() })} />
+                <TextField
+                  label="Short Code"
+                  fullWidth
+                  value={form.shortCode}
+                  error={Boolean(duplicateShortCode)}
+                  helperText={duplicateShortCode ? `Already used by ${duplicateShortCode.name}` : undefined}
+                  onChange={(e) => setForm({ ...form, shortCode: e.target.value.toUpperCase() })}
+                />
                 <TextField label="City" fullWidth value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
               </Stack>
               <Stack direction="row" spacing={2}>
@@ -175,6 +240,11 @@ export function TeamsManagementPage() {
                 <Typography variant="caption" color="text.secondary">
                   {logoFile ? logoFile.name : 'JPG, PNG, WebP, GIF, or SVG; max 5 MB.'}
                 </Typography>
+                {isCatalogImageUrl(form.logoUrl || '', 'teams') && (
+                  <Button color="error" disabled={saving} onClick={handleRemoveLogo}>
+                    Delete uploaded logo
+                  </Button>
+                )}
               </Stack>
               <TextField label="IPL Titles" type="number" fullWidth value={form.titles} onChange={(e) => setForm({ ...form, titles: Number(e.target.value) })} />
               <FormControlLabel control={<Switch checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />} label="Currently Active Franchise" />

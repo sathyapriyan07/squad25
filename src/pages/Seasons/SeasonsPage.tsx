@@ -24,8 +24,13 @@ export function SeasonsPage() {
           const isSelected = activeSeason?.id === season.id;
           const teamCount = catalog.seasonTeams.filter((st) => st.seasonId === season.id).length;
           const rule = catalog.seasonRules.find((r) => r.seasonId === season.id);
-          const eligibleCount = catalog.playerSeasons.filter(
-            (ps) => ps.seasonId === season.id && ps.isAvailable
+          const unavailablePlayerIds = new Set(
+            catalog.playerSeasons
+              .filter((entry) => entry.seasonId === season.id && !entry.isAvailable)
+              .map((entry) => entry.playerId)
+          );
+          const eligibleCount = catalog.players.filter(
+            (player) => !unavailablePlayerIds.has(player.id)
           ).length;
 
           return (

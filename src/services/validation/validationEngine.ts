@@ -29,7 +29,7 @@ export function validatePlayerAddition(
   }
 
   const eligibility = eligibilityMap.get(player.id);
-  if (!eligibility || !eligibility.isAvailable) {
+  if (eligibility?.isAvailable === false) {
     return {
       valid: false,
       issue: {
@@ -57,12 +57,12 @@ export function validatePlayerAddition(
     };
   }
 
-  const isOverseas = eligibility.isOverseasSnapshot ?? player.isOverseas;
+  const isOverseas = eligibility?.isOverseasSnapshot ?? player.isOverseas;
   if (isOverseas) {
     const currentOverseas = currentPlayerIds.reduce((count, id) => {
       const p = playersMap.get(id);
       const pElig = eligibilityMap.get(id);
-      const pOverseas = pElig ? pElig.isOverseasSnapshot : p?.isOverseas;
+      const pOverseas = pElig?.isOverseasSnapshot ?? p?.isOverseas;
       return count + (pOverseas ? 1 : 0);
     }, 0);
 
@@ -123,7 +123,7 @@ export function validateSquadAndXI(
     const player = playersMap.get(id);
     const elig = eligibilityMap.get(id);
 
-    if (!player || !elig || !elig.isAvailable) {
+    if (!player || elig?.isAvailable === false) {
       hardErrors.push({
         ruleId: 'PLAYER_NOT_ELIGIBLE',
         severity: 'error',
@@ -135,7 +135,7 @@ export function validateSquadAndXI(
     }
 
     if (player) {
-      const isOv = elig ? elig.isOverseasSnapshot : player.isOverseas;
+      const isOv = elig?.isOverseasSnapshot ?? player.isOverseas;
       if (isOv) overseas += 1;
       else indian += 1;
 
@@ -231,7 +231,7 @@ export function validateSquadAndXI(
     const player = playersMap.get(id);
     const elig = eligibilityMap.get(id);
     if (player) {
-      const isOv = elig ? elig.isOverseasSnapshot : player.isOverseas;
+      const isOv = elig?.isOverseasSnapshot ?? player.isOverseas;
       if (isOv) xiOverseas += 1;
       if (player.primaryRole === 'WK' || player.isWicketkeeper) xiWk += 1;
       if (player.primaryRole === 'BOWL' || player.primaryRole === 'AR') xiBowlers += 1;

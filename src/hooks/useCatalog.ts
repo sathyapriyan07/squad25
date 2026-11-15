@@ -45,7 +45,7 @@ export function useCatalog(overrideSeasonId?: string) {
   }, [catalog, activeSeason]);
 
   const eligiblePlayers = useMemo(
-    () => seasonPlayers.filter((p) => p.eligibility?.isAvailable),
+    () => seasonPlayers.filter((p) => p.eligibility?.isAvailable !== false),
     [seasonPlayers]
   );
 

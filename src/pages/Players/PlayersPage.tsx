@@ -42,7 +42,7 @@ export function PlayersPage() {
     const q = search.trim().toLowerCase();
     return seasonPlayers
       .filter((p) => {
-        if (onlyEligible === 'eligible' && !p.eligibility?.isAvailable) return false;
+        if (onlyEligible === 'eligible' && p.eligibility?.isAvailable === false) return false;
         if (filter === 'WK' && p.primaryRole !== 'WK' && !p.isWicketkeeper) return false;
         if (filter === 'BAT' && p.primaryRole !== 'BAT') return false;
         if (filter === 'AR' && p.primaryRole !== 'AR') return false;

@@ -120,7 +120,7 @@ export function ComparisonPage() {
     const pool = new Map<string, PlayerWithDetails>();
     for (const a of analyzed) {
       for (const p of a.players) {
-        if (p.eligibility?.isAvailable) pool.set(p.id, p);
+        if (p.eligibility?.isAvailable !== false) pool.set(p.id, p);
       }
     }
     const sorted = Array.from(pool.values()).sort((a, b) => b.ratings.overall - a.ratings.overall);

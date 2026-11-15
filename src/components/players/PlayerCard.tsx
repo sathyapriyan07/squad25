@@ -27,7 +27,7 @@ export function PlayerCard({
   compact = false,
   minimal = false,
 }: PlayerCardProps) {
-  const isAvailable = player.eligibility?.isAvailable ?? false;
+  const isAvailable = player.eligibility?.isAvailable !== false;
   const isOverseas = player.eligibility?.isOverseasSnapshot ?? player.isOverseas;
 
   if (minimal) {

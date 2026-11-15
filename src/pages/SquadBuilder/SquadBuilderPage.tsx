@@ -226,8 +226,8 @@ export function SquadBuilderPage() {
       })
       .sort((a, b) => {
         // Eligible first
-        const aAvail = a.eligibility?.isAvailable ? 1 : 0;
-        const bAvail = b.eligibility?.isAvailable ? 1 : 0;
+        const aAvail = a.eligibility?.isAvailable === false ? 0 : 1;
+        const bAvail = b.eligibility?.isAvailable === false ? 0 : 1;
         if (aAvail !== bAvail) return bAvail - aAvail;
         if (sortBy === 'name') return a.name.localeCompare(b.name);
         if (sortBy === 'batting') return b.ratings.batting - a.ratings.batting;

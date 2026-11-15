@@ -206,7 +206,10 @@ export function ImportsManagementPage() {
             playerId: pid,
             seasonId: sid,
             actualTeamId: String(d.actualTeamId || '') || null,
-            isAvailable: Boolean(d.isAvailable === true || String(d.isAvailable).toLowerCase() === 'true'),
+            isAvailable:
+              String(d.isAvailable).trim() === ''
+                ? true
+                : d.isAvailable === true || String(d.isAvailable).toLowerCase() === 'true',
             actualSquadStatus: (String(d.actualSquadStatus || 'Active') as ActualSquadStatus),
             isOverseasSnapshot: player?.isOverseas ?? false,
           });
