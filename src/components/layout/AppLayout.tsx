@@ -260,7 +260,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontFamily: '"Space Grotesk", sans-serif',
               fontWeight: 800,
               fontSize: '0.82rem',
               color: '#FFFFFF',
@@ -273,7 +272,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <Box>
               <Typography
                 variant="subtitle2"
-                sx={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700, letterSpacing: '0.04em', lineHeight: 1.1 }}
+                sx={{ fontWeight: 700, letterSpacing: '0.04em', lineHeight: 1.1 }}
               >
                 IPL SQUAD
               </Typography>

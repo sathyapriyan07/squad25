@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
-  Box,
   Button,
   Card,
   CardContent,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -27,7 +25,6 @@ import {
 import SaveIcon from '@mui/icons-material/Save';
 import ShareIcon from '@mui/icons-material/Share';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useCatalog } from '../../hooks/useCatalog';
 import {
@@ -51,6 +48,18 @@ import type { PlayerWithDetails, SquadShareSnapshot, ValidationIssue } from '../
 
 type FilterMode = 'ALL' | 'WK' | 'BAT' | 'AR' | 'BOWL' | 'IND' | 'OS' | 'CAP' | 'UNCAP';
 type SortMode = 'overall' | 'name' | 'batting' | 'bowling' | 'runs' | 'wickets';
+
+const FILTER_OPTIONS: Array<[FilterMode, string]> = [
+  ['ALL', 'All players'],
+  ['WK', 'Wicketkeepers'],
+  ['BAT', 'Batters'],
+  ['AR', 'All-rounders'],
+  ['BOWL', 'Bowlers'],
+  ['IND', 'Indian'],
+  ['OS', 'Overseas'],
+  ['CAP', 'Capped'],
+  ['UNCAP', 'Uncapped'],
+];
 
 export function SquadBuilderPage() {
   const { squadId } = useParams();
@@ -230,7 +239,7 @@ export function SquadBuilderPage() {
     const nextPlayers = [...squadPlayerObjects, player];
     const nextRatings = calculateTeamRatings(nextPlayers);
     addPlayer(player.id, nextRatings);
-    showSnackbar(`${player.shortName} added to ${activeTeam?.shortCode || 'squad'}`, 'success');
+    showSnackbar(`${player.shortName} added to squad`, 'success');
   };
 
   const handleRemovePlayer = (playerId: string) => {
@@ -258,7 +267,7 @@ export function SquadBuilderPage() {
     };
     const saved = await saveMutation.mutateAsync(payload);
     markClean(saved);
-    showSnackbar(`Saved "${saved.name}" to your franchise roster!`, 'success');
+    showSnackbar(`Saved ${saved.name}`, 'success');
     if (!squadId) {
       navigate(`/builder/${saved.id}`, { replace: true });
     }
@@ -298,7 +307,7 @@ export function SquadBuilderPage() {
     markClean(updated);
     const fullUrl = `${window.location.origin}/squad/${slug}`;
     setShareUrl(fullUrl);
-    showSnackbar('Share link generated and squad set to public!', 'success');
+    showSnackbar('Share link ready', 'success');
   };
 
   const handleGoToPlayingXI = async () => {
@@ -316,188 +325,156 @@ export function SquadBuilderPage() {
     <Stack spacing={2}>
       <Card>
         <CardContent sx={{ p: 2 }}>
-          <Stack spacing={1.5}>
-            <Grid container spacing={1.5}>
-              <Grid size={{ xs: 12, sm: 7 }}>
-                <SearchInput
-                  value={search}
-                  onChange={(v) => {
-                    setSearch(v);
-                    setPage(1);
-                  }}
-                  placeholder="Search player, country, role, previous team..."
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 5 }}>
-                <FormControl size="small" fullWidth>
-                  <InputLabel>Sort Players</InputLabel>
-                  <Select label="Sort Players" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortMode)}>
-                    <MenuItem value="overall">Overall Rating</MenuItem>
-                    <MenuItem value="name">Alphabetical</MenuItem>
-                    <MenuItem value="batting">Batting Rating</MenuItem>
-                    <MenuItem value="bowling">Bowling Rating</MenuItem>
-                    <MenuItem value="runs">IPL Runs</MenuItem>
-                    <MenuItem value="wickets">IPL Wickets</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
+          <Grid container spacing={1.5}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <SearchInput
+                value={search}
+                onChange={(value) => {
+                  setSearch(value);
+                  setPage(1);
+                }}
+                placeholder="Search players"
+              />
             </Grid>
-
-            <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: 'wrap' }}>
-              {(
-                [
-                  ['ALL', 'All'],
-                  ['WK', 'WK'],
-                  ['BAT', 'Batters'],
-                  ['AR', 'All-Rounders'],
-                  ['BOWL', 'Bowlers'],
-                  ['IND', 'Indian'],
-                  ['OS', 'Overseas'],
-                  ['CAP', 'Capped'],
-                  ['UNCAP', 'Uncapped'],
-                ] as Array<[FilterMode, string]>
-              ).map(([key, label]) => (
-                <Chip
-                  key={key}
-                  size="small"
-                  label={label}
-                  clickable
-                  color={filter === key ? 'primary' : 'default'}
-                  variant={filter === key ? 'filled' : 'outlined'}
-                  onClick={() => {
-                    setFilter(key);
+            <Grid size={{ xs: 6, sm: 3 }}>
+              <FormControl size="small" fullWidth>
+                <InputLabel>Filter</InputLabel>
+                <Select
+                  label="Filter"
+                  value={filter}
+                  onChange={(event) => {
+                    setFilter(event.target.value as FilterMode);
                     setPage(1);
                   }}
-                />
-              ))}
-            </Stack>
-          </Stack>
+                >
+                  {FILTER_OPTIONS.map(([value, label]) => (
+                    <MenuItem key={value} value={value}>{label}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid size={{ xs: 6, sm: 3 }}>
+              <FormControl size="small" fullWidth>
+                <InputLabel>Sort by</InputLabel>
+                <Select
+                  label="Sort by"
+                  value={sortBy}
+                  onChange={(event) => setSortBy(event.target.value as SortMode)}
+                >
+                  <MenuItem value="overall">Rating</MenuItem>
+                  <MenuItem value="name">Name</MenuItem>
+                  <MenuItem value="batting">Batting</MenuItem>
+                  <MenuItem value="bowling">Bowling</MenuItem>
+                  <MenuItem value="runs">Runs</MenuItem>
+                  <MenuItem value="wickets">Wickets</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
         </CardContent>
       </Card>
 
-      <Grid container spacing={1.75}>
-        {pagedPlayers.map((player) => (
-          <Grid key={player.id} size={{ xs: 12, sm: 6, xl: 4 }}>
-            <PlayerCard
-              player={player}
-              accentColor={accentColor}
-              isSelected={draft.playerIds.includes(player.id)}
-              onAdd={handleAddPlayer}
-              onRemove={(p) => handleRemovePlayer(p.id)}
-              onInspect={(p) =>
-                navigate(
-                  `/players/${p.id}?season=${effectiveSeasonId}&from=builder${squadId ? `&squadId=${squadId}` : ''}`
-                )
-              }
-              compact
-            />
-          </Grid>
-        ))}
-      </Grid>
+      {filteredDatabase.length > 0 ? (
+        <Grid container spacing={1.5}>
+          {pagedPlayers.map((player) => (
+            <Grid key={player.id} size={{ xs: 12 }}>
+              <PlayerCard
+                player={player}
+                accentColor={accentColor}
+                isSelected={draft.playerIds.includes(player.id)}
+                onAdd={handleAddPlayer}
+                onRemove={(item) => handleRemovePlayer(item.id)}
+                onInspect={(item) =>
+                  navigate(
+                    `/players/${item.id}?season=${effectiveSeasonId}&from=builder${squadId ? `&squadId=${squadId}` : ''}`
+                  )
+                }
+                minimal
+              />
+            </Grid>
+          ))}
+        </Grid>
+      ) : (
+        <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
+          No players match your search
+        </Typography>
+      )}
 
       {pageCount > 1 && (
         <Stack sx={{ alignItems: 'center' }}>
-          <Pagination count={pageCount} page={page} onChange={(_, v) => setPage(v)} size="small" color="primary" />
+          <Pagination count={pageCount} page={page} onChange={(_, value) => setPage(value)} size="small" />
         </Stack>
       )}
     </Stack>
   );
 
-  const selectionSummaryCenter = (
-    <Card sx={{ mb: 2, borderTop: `3px solid ${accentColor}` }}>
-      <CardContent sx={{ p: 2 }}>
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          spacing={1.5}
-          sx={{ justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' } }}
-        >
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-              Direct Selection Workspace • {activeTeam?.shortCode}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {activeRule.notes || `Min ${activeRule.minSquadSize} / Max ${activeRule.maxSquadSize} • Max ${activeRule.maxOverseas} Overseas`}
-            </Typography>
-          </Box>
-          <Stack direction="row" spacing={1}>
-            <Chip size="small" label={`Batting ${liveRatings.battingStrength}`} />
-            <Chip size="small" label={`Bowling ${liveRatings.bowlingStrength}`} />
-            <Chip size="small" label={`OVR ${liveRatings.overallRating}`} color="primary" />
-          </Stack>
-        </Stack>
-      </CardContent>
-    </Card>
-  );
-
   return (
-    <Stack spacing={2.5} sx={{ pb: isMobile ? 7 : 0 }}>
-      {/* Squad Builder Header */}
-      <Card sx={{ borderTop: `4px solid ${accentColor}` }}>
-        <CardContent sx={{ p: { xs: 2, md: 2.5 } }}>
-          <Grid container spacing={2} sx={{ alignItems: 'center' }}>
+    <Stack spacing={2} sx={{ pb: isMobile ? 7 : 0 }}>
+      <Card>
+        <CardContent sx={{ p: 2 }}>
+          <Grid container spacing={1.5} sx={{ alignItems: 'center' }}>
             <Grid size={{ xs: 12, md: 5 }}>
               <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-                <TeamLogo team={activeTeam} size={50} />
+                <TeamLogo team={activeTeam} size={40} />
                 <TextField
-                  label="Custom Squad Name"
+                  label="Squad name"
                   size="small"
                   fullWidth
                   value={draft.name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(event) => setName(event.target.value)}
                 />
               </Stack>
             </Grid>
-
-            <Grid size={{ xs: 6, md: 2.25 }}>
+            <Grid size={{ xs: 6, md: 2 }}>
               <FormControl size="small" fullWidth>
                 <InputLabel>Season</InputLabel>
                 <Select
                   label="Season"
                   value={draft.seasonId}
-                  onChange={(e) => {
-                    const nextSeason = e.target.value;
+                  onChange={(event) => {
+                    const nextSeason = event.target.value;
                     setSelectedSeasonId(nextSeason);
                     setTeamAndSeason(draft.teamId, nextSeason);
                   }}
                 >
-                  {catalog.seasons.map((s) => (
-                    <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
+                  {catalog.seasons.map((season) => (
+                    <MenuItem key={season.id} value={season.id}>{season.name}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
-
-            <Grid size={{ xs: 6, md: 2.25 }}>
+            <Grid size={{ xs: 6, md: 2 }}>
               <FormControl size="small" fullWidth>
                 <InputLabel>Franchise</InputLabel>
                 <Select
                   label="Franchise"
                   value={activeTeam?.id || draft.teamId}
-                  onChange={(e) => {
-                    const nextTeam = e.target.value;
+                  onChange={(event) => {
+                    const nextTeam = event.target.value;
                     setSelectedTeamId(nextTeam);
                     setTeamAndSeason(nextTeam, draft.seasonId);
                   }}
                 >
-                  {participatingTeams.map((t) => (
-                    <MenuItem key={t.id} value={t.id}>{t.shortCode} — {t.name}</MenuItem>
+                  {participatingTeams.map((team) => (
+                    <MenuItem key={team.id} value={team.id}>{team.shortCode}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
-
-            <Grid size={{ xs: 12, md: 2.5 }}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <Stack direction="row" spacing={1} sx={{ justifyContent: { xs: 'stretch', md: 'flex-end' } }}>
                 <Button
+                  size="small"
                   variant="contained"
                   startIcon={<SaveIcon />}
                   disabled={saveMutation.isPending}
                   onClick={handleSave}
                   sx={{ bgcolor: accentColor, flex: { xs: 1, md: 'initial' } }}
                 >
-                  {saveMutation.isPending ? 'Saving...' : 'Save'}
+                  {saveMutation.isPending ? 'Saving' : 'Save'}
                 </Button>
                 <Button
+                  size="small"
                   variant="outlined"
                   startIcon={<ShareIcon />}
                   disabled={shareMutation.isPending || draft.playerIds.length === 0}
@@ -512,25 +489,20 @@ export function SquadBuilderPage() {
         </CardContent>
       </Card>
 
-      {/* Main Workspace */}
       {isMobile ? (
         <>
-          <Tabs value={mobileTab} onChange={(_, v) => setMobileTab(v)} variant="fullWidth">
-            <Tab label={`Player Pool (${filteredDatabase.length})`} />
-            <Tab label={`Squad Overview (${draft.playerIds.length})`} />
+          <Tabs value={mobileTab} onChange={(_, value) => setMobileTab(value)} variant="fullWidth">
+            <Tab label={`Players · ${filteredDatabase.length}`} />
+            <Tab label={`Squad · ${draft.playerIds.length}`} />
           </Tabs>
           {mobileTab === 0 ? (
-            <Box>
-              {selectionSummaryCenter}
-              {playerDatabasePane}
-            </Box>
+            playerDatabasePane
           ) : (
             <SquadOverview
               players={squadPlayerObjects}
               validation={validation}
               ratings={liveRatings}
               rule={activeRule}
-              accentColor={accentColor}
               onRemovePlayer={handleRemovePlayer}
               onMovePlayer={handleMovePlayer}
               onGoToPlayingXI={handleGoToPlayingXI}
@@ -538,21 +510,16 @@ export function SquadBuilderPage() {
           )}
         </>
       ) : (
-        <Grid container spacing={2.5} sx={{ alignItems: 'flex-start' }}>
-          {/* LEFT + CENTRE: Player Database & Selection Area */}
-          <Grid size={{ lg: 8, xl: 8.5 }}>
-            {selectionSummaryCenter}
+        <Grid container spacing={2} sx={{ alignItems: 'flex-start' }}>
+          <Grid size={{ lg: 8, xl: 8 }}>
             {playerDatabasePane}
           </Grid>
-
-          {/* RIGHT: Squad Overview */}
-          <Grid size={{ lg: 4, xl: 3.5 }} sx={{ position: 'sticky', top: 84 }}>
+          <Grid size={{ lg: 4, xl: 4 }} sx={{ position: 'sticky', top: 80 }}>
             <SquadOverview
               players={squadPlayerObjects}
               validation={validation}
               ratings={liveRatings}
               rule={activeRule}
-              accentColor={accentColor}
               onRemovePlayer={handleRemovePlayer}
               onMovePlayer={handleMovePlayer}
               onGoToPlayingXI={handleGoToPlayingXI}
@@ -561,45 +528,31 @@ export function SquadBuilderPage() {
         </Grid>
       )}
 
-      {/* Invalid Selection Explanation Dialog */}
       <Dialog open={Boolean(invalidDialog)} onClose={() => setInvalidDialog(null)} maxWidth="xs" fullWidth>
-        <DialogTitle>
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <WarningAmberIcon color="error" />
-            <Typography variant="h6">Selection Blocked</Typography>
-          </Stack>
-        </DialogTitle>
+        <DialogTitle>Player not added</DialogTitle>
         <DialogContent>
           {invalidDialog && (
             <Stack spacing={1.5}>
               <Alert severity="error">{invalidDialog.message}</Alert>
               <Typography variant="body2" color="text.secondary">
-                <strong>Resolution:</strong> {invalidDialog.suggestedResolution}
+                {invalidDialog.suggestedResolution}
               </Typography>
             </Stack>
           )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
-          <Button onClick={() => setInvalidDialog(null)} variant="contained">
-            Understood
-          </Button>
+          <Button onClick={() => setInvalidDialog(null)} variant="contained">Close</Button>
         </DialogActions>
       </Dialog>
 
-      {/* Share Link Dialog */}
       <Dialog open={Boolean(shareUrl)} onClose={() => setShareUrl(null)} maxWidth="sm" fullWidth>
-        <DialogTitle>Squad Share Link Ready</DialogTitle>
+        <DialogTitle>Share squad</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Typography variant="body2" color="text.secondary">
-              Your squad is now publicly viewable via this link without exposing private account details.
+              Anyone with this link can view the squad.
             </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              value={shareUrl || ''}
-              slotProps={{ input: { readOnly: true } }}
-            />
+            <TextField fullWidth size="small" value={shareUrl || ''} slotProps={{ input: { readOnly: true } }} />
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
@@ -610,11 +563,11 @@ export function SquadBuilderPage() {
             onClick={() => {
               if (shareUrl) {
                 navigator.clipboard.writeText(shareUrl);
-                showSnackbar('Share link copied to clipboard!', 'success');
+                showSnackbar('Share link copied', 'success');
               }
             }}
           >
-            Copy Link
+            Copy link
           </Button>
           <Button
             variant="contained"
@@ -626,7 +579,7 @@ export function SquadBuilderPage() {
               }
             }}
           >
-            View Public Page
+            Open share page
           </Button>
         </DialogActions>
       </Dialog>

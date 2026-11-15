@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Avatar, Box, Chip, Stack, Typography } from '@mui/material';
 import type { Player } from '../../types/ipl';
 
@@ -24,28 +25,42 @@ interface PlayerAvatarProps {
   player: Pick<Player, 'name' | 'shortName' | 'imageUrl' | 'primaryRole' | 'jerseyNumber'>;
   accentColor?: string;
   size?: number;
+  minimal?: boolean;
 }
 
-export function PlayerAvatar({ player, accentColor = '#3B82F6', size = 48 }: PlayerAvatarProps) {
+export function PlayerAvatar({
+  player,
+  accentColor = '#3B82F6',
+  size = 48,
+  minimal = false,
+}: PlayerAvatarProps) {
   const initials = player.name
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
     .map((p) => p[0]?.toUpperCase())
     .join('');
+  const imageUrl = player.imageUrl?.trim();
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
 
-  if (player.imageUrl) {
+  if (imageUrl && failedImageUrl !== imageUrl) {
     return (
       <Avatar
-        src={player.imageUrl}
-        alt={player.name}
         sx={{
           width: size,
           height: size,
-          border: `2px solid ${accentColor}`,
+          border: minimal ? '1px solid rgba(255,255,255,0.12)' : `2px solid ${accentColor}`,
           bgcolor: '#1C2430',
         }}
-      />
+      >
+        <Box
+          component="img"
+          src={imageUrl}
+          alt={player.name}
+          onError={() => setFailedImageUrl(imageUrl)}
+          sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      </Avatar>
     );
   }
 
@@ -55,8 +70,8 @@ export function PlayerAvatar({ player, accentColor = '#3B82F6', size = 48 }: Pla
         width: size,
         height: size,
         borderRadius: '50%',
-        background: `radial-gradient(circle at 30% 25%, ${accentColor}55, #151B25 75%)`,
-        border: `1.5px solid ${accentColor}88`,
+        background: minimal ? '#232325' : `radial-gradient(circle at 30% 25%, ${accentColor}55, #151B25 75%)`,
+        border: minimal ? '1px solid rgba(255,255,255,0.12)' : `1.5px solid ${accentColor}88`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -66,11 +81,10 @@ export function PlayerAvatar({ player, accentColor = '#3B82F6', size = 48 }: Pla
     >
       <Typography
         sx={{
-          fontFamily: '"Space Grotesk", sans-serif',
-          fontWeight: 700,
+          fontWeight: minimal ? 500 : 700,
           fontSize: size >= 72 ? '1.35rem' : size >= 44 ? '0.9rem' : '0.72rem',
           color: '#F5F7FA',
-          letterSpacing: '0.03em',
+          letterSpacing: minimal ? 0 : '0.03em',
         }}
       >
         {initials}

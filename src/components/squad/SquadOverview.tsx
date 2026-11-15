@@ -1,13 +1,9 @@
 import {
   Alert,
-  AvatarGroup,
   Box,
   Button,
   Card,
   CardContent,
-  Chip,
-  CircularProgress,
-  Divider,
   IconButton,
   LinearProgress,
   Stack,
@@ -19,14 +15,13 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
 import type { PlayerWithDetails, SeasonRule, SquadValidationResult, TeamRatingBreakdown } from '../../types/ipl';
-import { PlayerAvatar, RoleBadge } from '../common/PlayerAvatar';
+import { PlayerAvatar } from '../common/PlayerAvatar';
 
 interface SquadOverviewProps {
   players: PlayerWithDetails[];
   validation: SquadValidationResult;
   ratings: TeamRatingBreakdown;
   rule: SeasonRule;
-  accentColor: string;
   onRemovePlayer: (playerId: string) => void;
   onMovePlayer: (index: number, direction: 'up' | 'down') => void;
   onGoToPlayingXI: () => void;
@@ -37,7 +32,6 @@ export function SquadOverview({
   validation,
   ratings,
   rule,
-  accentColor,
   onRemovePlayer,
   onMovePlayer,
   onGoToPlayingXI,
@@ -45,193 +39,177 @@ export function SquadOverview({
   const { counts } = validation;
   const squadPct = Math.min(100, Math.round((counts.total / rule.maxSquadSize) * 100));
   const overseasPct = Math.min(100, Math.round((counts.overseas / rule.maxOverseas) * 100));
-  const remainingSlots = Math.max(0, rule.maxSquadSize - counts.total);
-
-  const statusColor: Record<SquadValidationResult['status'], 'success' | 'warning' | 'error' | 'info'> = {
-    Valid: 'success',
-    'Ready for Playing XI': 'info',
-    Incomplete: 'warning',
-    Invalid: 'error',
-  };
+  const statusColor = validation.hardErrors.length
+    ? 'error.main'
+    : validation.isValidSquad
+      ? 'success.main'
+      : 'text.secondary';
 
   return (
     <Stack spacing={2}>
       <Card>
-        <CardContent sx={{ p: 2.25 }}>
-          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                Squad Overview
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {counts.total}/{rule.maxSquadSize} Selected • {remainingSlots} slots open
-              </Typography>
-            </Box>
-            <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-              <CircularProgress
-                variant="determinate"
-                value={ratings.overallRating}
-                size={50}
-                thickness={4.5}
-                sx={{ color: accentColor }}
-              />
-              <Box
-                sx={{
-                  inset: 0,
-                  position: 'absolute',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Typography variant="caption" className="tabular-nums" sx={{ fontWeight: 800 }}>
+        <CardContent sx={{ p: 2 }}>
+          <Stack spacing={1.5}>
+            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>Squad</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {counts.total} / {rule.maxSquadSize} players · min {rule.minSquadSize}
+                </Typography>
+              </Box>
+              <Box sx={{ textAlign: 'right' }}>
+                <Typography variant="caption" color="text.secondary">Overall</Typography>
+                <Typography variant="h6" className="tabular-nums" sx={{ lineHeight: 1.2 }}>
                   {ratings.overallRating}
                 </Typography>
               </Box>
-            </Box>
+            </Stack>
+
+            <Typography variant="caption" color={statusColor}>
+              {validation.status}
+            </Typography>
+
+            <Stack spacing={1.5}>
+              <Box>
+                <Stack direction="row" sx={{ justifyContent: 'space-between', mb: 0.5 }}>
+                  <Typography variant="caption" color="text.secondary">Squad size</Typography>
+                  <Typography variant="caption" className="tabular-nums">
+                    {counts.total} / {rule.maxSquadSize}
+                  </Typography>
+                </Stack>
+                <LinearProgress
+                  variant="determinate"
+                  value={squadPct}
+                  sx={{
+                    height: 4,
+                    borderRadius: 2,
+                    bgcolor: 'action.hover',
+                    '& .MuiLinearProgress-bar': { bgcolor: 'text.secondary' },
+                  }}
+                />
+              </Box>
+              <Box>
+                <Stack direction="row" sx={{ justifyContent: 'space-between', mb: 0.5 }}>
+                  <Typography variant="caption" color="text.secondary">Overseas</Typography>
+                  <Typography
+                    variant="caption"
+                    className="tabular-nums"
+                    color={counts.overseas > rule.maxOverseas ? 'error.main' : 'text.primary'}
+                  >
+                    {counts.overseas} / {rule.maxOverseas}
+                  </Typography>
+                </Stack>
+                <LinearProgress
+                  variant="determinate"
+                  value={overseasPct}
+                  sx={{
+                    height: 4,
+                    borderRadius: 2,
+                    bgcolor: 'action.hover',
+                    '& .MuiLinearProgress-bar': {
+                      bgcolor: counts.overseas > rule.maxOverseas ? 'error.main' : 'text.secondary',
+                    },
+                  }}
+                />
+              </Box>
+            </Stack>
+
+            <Typography variant="caption" color="text.secondary">
+              WK {counts.wk} · BAT {counts.bat} · AR {counts.ar} · BOWL {counts.bowl}
+            </Typography>
+
+            <Button
+              fullWidth
+              size="small"
+              variant="outlined"
+              startIcon={<FormatListNumberedIcon />}
+              onClick={onGoToPlayingXI}
+              disabled={players.length < 11}
+              color="inherit"
+              sx={{ borderColor: 'divider' }}
+            >
+              Playing XI · {counts.xiTotal}/11
+            </Button>
           </Stack>
-
-          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-            <Chip label={validation.status} color={statusColor[validation.status]} size="small" />
-            {players.length > 0 && (
-              <AvatarGroup max={5} sx={{ '& .MuiAvatar-root': { width: 26, height: 26, fontSize: '0.68rem' } }}>
-                {players.map((p) => (
-                  <Box key={p.id} component="span" title={p.name}>
-                    <PlayerAvatar player={p} accentColor={accentColor} size={26} />
-                  </Box>
-                ))}
-              </AvatarGroup>
-            )}
-          </Stack>
-
-          <Stack spacing={1.25} sx={{ mb: 2 }}>
-            <Box>
-              <Stack direction="row" sx={{ justifyContent: 'space-between', mb: 0.4 }}>
-                <Typography variant="caption" color="text.secondary">Squad Size (Min {rule.minSquadSize})</Typography>
-                <Typography variant="caption" className="tabular-nums" sx={{ fontWeight: 700 }}>
-                  {counts.total} / {rule.maxSquadSize}
-                </Typography>
-              </Stack>
-              <LinearProgress
-                variant="determinate"
-                value={squadPct}
-                sx={{ height: 7, borderRadius: 4, bgcolor: 'rgba(255,255,255,0.08)', '& .MuiLinearProgress-bar': { bgcolor: accentColor } }}
-              />
-            </Box>
-
-            <Box>
-              <Stack direction="row" sx={{ justifyContent: 'space-between', mb: 0.4 }}>
-                <Typography variant="caption" color="text.secondary">Overseas Quota</Typography>
-                <Typography
-                  variant="caption"
-                  className="tabular-nums"
-                  color={counts.overseas > rule.maxOverseas ? 'error.main' : 'text.primary'}
-                  sx={{ fontWeight: 700 }}
-                >
-                  {counts.overseas} / {rule.maxOverseas}
-                </Typography>
-              </Stack>
-              <LinearProgress
-                variant="determinate"
-                value={overseasPct}
-                color={counts.overseas > rule.maxOverseas ? 'error' : 'warning'}
-                sx={{ height: 7, borderRadius: 4, bgcolor: 'rgba(255,255,255,0.08)' }}
-              />
-            </Box>
-          </Stack>
-
-          <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: 'wrap', mb: 2 }}>
-            <Chip size="small" label={`IND: ${counts.indian}`} variant="outlined" />
-            <Chip size="small" label={`OS: ${counts.overseas}`} variant="outlined" />
-            <Chip size="small" label={`WK: ${counts.wk}`} variant="outlined" />
-            <Chip size="small" label={`BAT: ${counts.bat}`} variant="outlined" />
-            <Chip size="small" label={`AR: ${counts.ar}`} variant="outlined" />
-            <Chip size="small" label={`BOWL: ${counts.bowl}`} variant="outlined" />
-          </Stack>
-
-          <Button
-            fullWidth
-            variant="outlined"
-            startIcon={<FormatListNumberedIcon />}
-            onClick={onGoToPlayingXI}
-            disabled={players.length < 11}
-            sx={{ borderColor: accentColor, color: '#FFF' }}
-          >
-            Configure Playing XI ({counts.xiTotal}/11)
-          </Button>
         </CardContent>
       </Card>
 
-      {validation.hardErrors.map((err) => (
-        <Alert key={`${err.ruleId}_${err.affectedPlayerId ?? ''}`} severity="error" variant="outlined">
-          <Typography variant="caption" sx={{ fontWeight: 700, display: 'block' }}>{err.message}</Typography>
-          <Typography variant="caption" color="text.secondary">{err.suggestedResolution}</Typography>
+      {validation.hardErrors.map((issue) => (
+        <Alert key={`${issue.ruleId}_${issue.affectedPlayerId ?? ''}`} severity="error" variant="outlined">
+          <Typography variant="body2">{issue.message}</Typography>
+          <Typography variant="caption" color="text.secondary">{issue.suggestedResolution}</Typography>
         </Alert>
       ))}
-      {validation.warnings.slice(0, 3).map((warn) => (
-        <Alert key={warn.ruleId} severity="warning" variant="outlined">
-          <Typography variant="caption" sx={{ fontWeight: 600, display: 'block' }}>{warn.message}</Typography>
+      {validation.warnings.slice(0, 3).map((warning) => (
+        <Alert key={warning.ruleId} severity="warning" variant="outlined">
+          <Typography variant="body2">{warning.message}</Typography>
         </Alert>
       ))}
 
       <Card>
         <CardContent sx={{ p: 2 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
-            Selected Squad ({players.length})
-          </Typography>
-          <Divider sx={{ mb: 1 }} />
+          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline', mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>Selected players</Typography>
+            <Typography variant="caption" color="text.secondary">{players.length}</Typography>
+          </Stack>
           {players.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
-              Select players from the database to build your squad.
+            <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+              Add players to start your squad
             </Typography>
           ) : (
-            <Stack spacing={0.75} sx={{ maxHeight: 420, overflowY: 'auto', pr: 0.5 }}>
-              {players.map((p, idx) => (
+            <Stack sx={{ maxHeight: 420, overflowY: 'auto' }}>
+              {players.map((player, index) => (
                 <Stack
-                  key={p.id}
+                  key={player.id}
                   direction="row"
                   spacing={1}
                   sx={{
                     alignItems: 'center',
-                    p: 1,
-                    borderRadius: '10px',
-                    bgcolor: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.06)',
+                    py: 1,
+                    borderBottom: index < players.length - 1 ? '1px solid' : undefined,
+                    borderColor: 'divider',
                   }}
                 >
-                  <PlayerAvatar player={p} accentColor={accentColor} size={32} />
+                  <PlayerAvatar player={player} size={32} minimal />
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
-                      {p.shortName}
+                    <Typography variant="body2" noWrap>{player.shortName}</Typography>
+                    <Typography variant="caption" color="text.secondary" noWrap>
+                      {player.primaryRole} · {player.isOverseas ? 'Overseas' : 'Indian'}
                     </Typography>
-                    <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
-                      <RoleBadge role={p.primaryRole} />
-                      <Typography variant="caption" color="text.secondary" noWrap>
-                        {p.isOverseas ? 'OS' : 'IND'} • {p.ratings.overall}
-                      </Typography>
-                    </Stack>
                   </Box>
-                  <Stack direction="row" spacing={0.25}>
-                    <Tooltip title="Move up">
-                      <span>
-                        <IconButton size="small" disabled={idx === 0} onClick={() => onMovePlayer(idx, 'up')}>
-                          <ArrowUpwardIcon sx={{ fontSize: 15 }} />
-                        </IconButton>
-                      </span>
-                    </Tooltip>
-                    <Tooltip title="Move down">
-                      <span>
-                        <IconButton size="small" disabled={idx === players.length - 1} onClick={() => onMovePlayer(idx, 'down')}>
-                          <ArrowDownwardIcon sx={{ fontSize: 15 }} />
-                        </IconButton>
-                      </span>
-                    </Tooltip>
-                    <Tooltip title="Remove from squad">
-                      <IconButton size="small" color="error" onClick={() => onRemovePlayer(p.id)}>
-                        <DeleteIcon sx={{ fontSize: 16 }} />
+                  <Tooltip title="Move up">
+                    <span>
+                      <IconButton
+                        size="small"
+                        aria-label={`Move ${player.shortName} up`}
+                        disabled={index === 0}
+                        onClick={() => onMovePlayer(index, 'up')}
+                      >
+                        <ArrowUpwardIcon sx={{ fontSize: 16 }} />
                       </IconButton>
-                    </Tooltip>
-                  </Stack>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title="Move down">
+                    <span>
+                      <IconButton
+                        size="small"
+                        aria-label={`Move ${player.shortName} down`}
+                        disabled={index === players.length - 1}
+                        onClick={() => onMovePlayer(index, 'down')}
+                      >
+                        <ArrowDownwardIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title="Remove player">
+                    <IconButton
+                      size="small"
+                      aria-label={`Remove ${player.shortName}`}
+                      onClick={() => onRemovePlayer(player.id)}
+                    >
+                      <DeleteIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  </Tooltip>
                 </Stack>
               ))}
             </Stack>

@@ -63,7 +63,6 @@ export function TeamLogo({ team, size = 44 }: TeamLogoProps) {
         sx={{
           position: 'relative',
           zIndex: 1,
-          fontFamily: '"Space Grotesk", sans-serif',
           fontWeight: 800,
           fontSize: size >= 52 ? '0.95rem' : size >= 38 ? '0.75rem' : '0.62rem',
           letterSpacing: '0.04em',

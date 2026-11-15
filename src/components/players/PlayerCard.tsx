@@ -1,4 +1,4 @@
-import { Box, Button, Card, CardContent, Chip, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CheckIcon from '@mui/icons-material/Check';
 import FlightIcon from '@mui/icons-material/Flight';
@@ -14,6 +14,7 @@ interface PlayerCardProps {
   onRemove?: (player: PlayerWithDetails) => void;
   onInspect: (player: PlayerWithDetails) => void;
   compact?: boolean;
+  minimal?: boolean;
 }
 
 export function PlayerCard({
@@ -24,9 +25,82 @@ export function PlayerCard({
   onRemove,
   onInspect,
   compact = false,
+  minimal = false,
 }: PlayerCardProps) {
   const isAvailable = player.eligibility?.isAvailable ?? false;
   const isOverseas = player.eligibility?.isOverseasSnapshot ?? player.isOverseas;
+
+  if (minimal) {
+    const identity = [
+      player.primaryRole,
+      player.nationality,
+      isOverseas ? 'Overseas' : undefined,
+      player.actualTeam?.shortCode,
+    ].filter(Boolean).join(' · ');
+
+    return (
+      <Card
+        sx={{
+          height: '100%',
+          borderColor: 'divider',
+          borderLeft: isSelected ? `3px solid ${accentColor}` : '3px solid transparent',
+          boxShadow: 'none',
+        }}
+      >
+        <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <PlayerAvatar player={player} accentColor={accentColor} size={36} minimal />
+            <Stack direction="row" spacing={1} sx={{ flex: 1, minWidth: 0, alignItems: 'center' }}>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline', justifyContent: 'space-between' }}>
+                  <Typography variant="body2" noWrap sx={{ flex: 1, minWidth: 0, fontWeight: 500 }}>
+                    {player.name}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" className="tabular-nums" sx={{ flexShrink: 0 }}>
+                    OVR {player.ratings.overall}
+                  </Typography>
+                </Stack>
+                <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+                  {identity}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color={isAvailable ? 'text.secondary' : 'warning.main'}
+                  noWrap
+                  sx={{ display: 'block' }}
+                >
+                  {isAvailable ? 'Eligible' : 'Unavailable'} · {player.careerStats.matches} matches
+                </Typography>
+              </Box>
+              <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', flexShrink: 0 }}>
+                <Tooltip title={`View ${player.name}`}>
+                  <IconButton
+                    size="small"
+                    aria-label={`View ${player.name}`}
+                    onClick={() => onInspect(player)}
+                  >
+                    <InfoOutlinedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                {onAdd && (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="inherit"
+                    disabled={!isAvailable && !isSelected}
+                    onClick={() => (isSelected && onRemove ? onRemove(player) : onAdd(player))}
+                    sx={{ minWidth: 56, px: 1, borderColor: 'divider' }}
+                  >
+                    {isSelected ? 'Remove' : isAvailable ? 'Add' : 'Unavailable'}
+                  </Button>
+                )}
+              </Stack>
+            </Stack>
+          </Stack>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card

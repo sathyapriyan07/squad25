@@ -97,7 +97,7 @@ export function AdminUsersPage() {
               {users.map((u) => (
                 <TableRow key={u.uid}>
                   <TableCell sx={{ fontWeight: 600 }}>{u.displayName}</TableCell>
-                  <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.78rem' }}>{u.uid}</TableCell>
+                  <TableCell sx={{ fontSize: '0.78rem' }}>{u.uid}</TableCell>
                   <TableCell><Chip size="small" label={u.role} color={u.role === 'admin' ? 'warning' : 'default'} /></TableCell>
                   <TableCell>
                     <Switch
