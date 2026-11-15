@@ -47,9 +47,9 @@ export function PlayerCard({
           boxShadow: 'none',
         }}
       >
-        <CardContent sx={{ p: 1.5, pb: 0, '&:last-child': { pb: 0 } }}>
+        <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <Box sx={{ alignSelf: 'flex-end', lineHeight: 0 }}>
+            <Box sx={{ alignSelf: 'flex-end', lineHeight: 0, mb: -1.5 }}>
               <PlayerAvatar player={player} accentColor={accentColor} size={48} minimal />
             </Box>
             <Stack direction="row" spacing={1} sx={{ flex: 1, minWidth: 0, alignItems: 'center' }}>
