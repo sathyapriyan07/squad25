@@ -18,7 +18,7 @@
 
    The migration also creates the public `catalog-images` Storage bucket. If your database schema was already initialized before image uploads were added, run the storage bucket, storage grants, and storage policy statements at the end of the migration once.
 
-## Initialize the IPL catalog
+## Add catalog data
 
 1. Create a user using the app's registration screen.
 2. In the Supabase SQL Editor, grant the account admin access:
@@ -30,7 +30,9 @@
    ```
 
 3. Sign in again and open `/admin`.
-4. Click **Persist Catalog to Supabase** to load the reference seasons, teams, players, eligibility, ratings, and statistics.
-5. Use `/admin/imports` to upload `.xlsx` or `.csv` catalog updates.
+4. The catalog starts empty. Add seasons and franchises from their administration pages, then add players, eligibility, ratings, and season rules.
+5. `/admin/imports` provides header-only `.xlsx` templates for importing your own catalog data.
 
-The migration uses text identifiers for IPL catalog data (for example `ipl-2025`, `csk`, and player slugs) and UUIDs only for Supabase Auth users. Row Level Security protects profiles, squads, comparisons, imports, catalog mutations, and image uploads. Catalog images are publicly readable; only admins can upload, replace, or delete them.
+The app does not load or synchronize bundled sample data. Removing the bundled data does not delete or alter existing rows in your Supabase project.
+
+Catalog records use text identifiers, while Supabase Auth users use UUIDs. Row Level Security protects profiles, squads, comparisons, imports, catalog mutations, and image uploads. Catalog images are publicly readable; only admins can upload, replace, or delete them.

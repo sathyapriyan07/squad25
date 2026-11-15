@@ -74,18 +74,18 @@ export function PlayersManagementPage() {
     defaultValues: {
       name: '',
       shortName: '',
-      dob: '1996-05-10',
-      nationality: 'India',
-      countryFlag: 'IN',
+      dob: '',
+      nationality: '',
+      countryFlag: '',
       imageUrl: '',
       biography: '',
       primaryRole: 'BAT',
-      battingStyle: 'Right-hand bat',
-      bowlingStyle: 'None',
-      isCapped: true,
+      battingStyle: '',
+      bowlingStyle: '',
+      isCapped: false,
       isWicketkeeper: false,
       isOverseas: false,
-      overall: 80,
+      overall: 0,
     },
   });
 
@@ -104,18 +104,18 @@ export function PlayersManagementPage() {
       id: '',
       name: '',
       shortName: '',
-      dob: '1996-05-10',
-      nationality: 'India',
-      countryFlag: 'IN',
+      dob: '',
+      nationality: '',
+      countryFlag: '',
       imageUrl: '',
       biography: '',
       primaryRole: 'BAT',
-      battingStyle: 'Right-hand bat',
-      bowlingStyle: 'None',
-      isCapped: true,
+      battingStyle: '',
+      bowlingStyle: '',
+      isCapped: false,
       isWicketkeeper: false,
       isOverseas: false,
-      overall: 80,
+      overall: 0,
     });
     setOpen(true);
   };
@@ -137,7 +137,7 @@ export function PlayersManagementPage() {
       isCapped: p.isCapped,
       isWicketkeeper: p.isWicketkeeper,
       isOverseas: p.isOverseas,
-      overall: ratingsMap.get(p.id)?.overall ?? 75,
+      overall: ratingsMap.get(p.id)?.overall ?? 0,
     });
     setOpen(true);
   };

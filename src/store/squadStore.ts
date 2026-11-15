@@ -35,9 +35,9 @@ const EMPTY_RATINGS: TeamRatingBreakdown = {
 
 function createEmptyDraft(
   ownerId = '',
-  seasonId = 'ipl-2025',
-  teamId = 'csk',
-  teamShortCode = 'CSK'
+  seasonId = '',
+  teamId = '',
+  teamShortCode = ''
 ): CustomSquad {
   const now = new Date().toISOString();
   const id = `sq_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
@@ -46,7 +46,7 @@ function createEmptyDraft(
     ownerId,
     seasonId,
     teamId,
-    name: `${teamShortCode} Dream Squad`,
+    name: teamShortCode ? `${teamShortCode} squad` : 'New squad',
     playerIds: [],
     playingXiIds: [],
     substituteIds: [],

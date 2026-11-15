@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Alert,
   Button,
   Card,
   Chip,
@@ -17,6 +18,7 @@ import {
   TableRow,
 } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { useCatalog } from '../../hooks/useCatalog';
 import { upsertPlayerEligibility } from '../../services/dataService';
 import { useAppStore } from '../../store/appStore';
@@ -28,10 +30,24 @@ export function EligibilityManagementPage() {
   const qc = useQueryClient();
   const showSnackbar = useAppStore((s) => s.showSnackbar);
   const { catalog, activeSeason, isLoading } = useCatalog();
-  const [seasonId, setSeasonId] = useState(activeSeason?.id || 'ipl-2025');
+  const [selectedSeasonId, setSelectedSeasonId] = useState('');
   const [search, setSearch] = useState('');
+  const seasonId = selectedSeasonId || activeSeason?.id || catalog?.seasons[0]?.id || '';
 
   if (isLoading || !catalog) return <AdminLayout><LoadingState count={3} /></AdminLayout>;
+
+  if (!seasonId) {
+    return (
+      <AdminLayout>
+        <Alert
+          severity="info"
+          action={<Button component={Link} to="/admin/seasons" color="inherit">Add a season</Button>}
+        >
+          Add a season before assigning player eligibility.
+        </Alert>
+      </AdminLayout>
+    );
+  }
 
   const eligMap = new Map(
     catalog.playerSeasons.filter((ps) => ps.seasonId === seasonId).map((ps) => [ps.playerId, ps])
@@ -71,7 +87,7 @@ export function EligibilityManagementPage() {
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <FormControl size="small" sx={{ minWidth: 180 }}>
             <InputLabel>Season</InputLabel>
-            <Select label="Season" value={seasonId} onChange={(e) => setSeasonId(e.target.value)}>
+            <Select label="Season" value={seasonId} onChange={(e) => setSelectedSeasonId(e.target.value)}>
               {catalog.seasons.map((s) => (
                 <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
               ))}

@@ -29,7 +29,7 @@ export function DashboardPage() {
     <Stack spacing={3}>
       <PageHeader
         title={`Welcome, ${user?.displayName || 'Manager'}`}
-        subtitle={`Managing custom rosters for ${activeSeason?.name || 'IPL 2025'}.`}
+        subtitle={`Managing custom rosters for ${activeSeason?.name || 'no configured season'}.`}
         actions={
           <>
             {user?.role === 'admin' && (

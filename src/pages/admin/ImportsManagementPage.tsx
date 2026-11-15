@@ -41,7 +41,12 @@ import type { ActualSquadStatus, PlayerRole } from '../../types/ipl';
 type ImportType = 'players' | 'eligibility' | 'statistics';
 
 const TARGET_FIELDS: Record<ImportType, string[]> = {
-  players: ['name', 'shortName', 'nationality', 'countryFlag', 'primaryRole', 'battingStyle', 'bowlingStyle', 'isCapped', 'isWicketkeeper', 'isOverseas', 'overall'],
+  players: [
+    'name', 'shortName', 'dob', 'nationality', 'countryFlag', 'primaryRole',
+    'battingStyle', 'bowlingStyle', 'isCapped', 'isWicketkeeper', 'isOverseas',
+    'batting', 'powerHitting', 'technique', 'finishing', 'paceBowling',
+    'spinBowling', 'wicketkeeping', 'fielding', 'overall',
+  ],
   eligibility: ['playerId', 'seasonId', 'actualTeamId', 'isAvailable', 'actualSquadStatus'],
   statistics: ['playerId', 'seasonId', 'matches', 'runs', 'battingAverage', 'strikeRate', 'wickets', 'economy'],
 };
@@ -70,49 +75,10 @@ export function ImportsManagementPage() {
   if (isLoading || !catalog) return <AdminLayout><LoadingState count={3} /></AdminLayout>;
 
   const handleDownloadTemplate = () => {
-    const sample: Record<ImportType, Record<string, unknown>[]> = {
-      players: [
-        {
-          name: 'Tilak Varma',
-          shortName: 'T. Varma',
-          nationality: 'India',
-          countryFlag: 'IN',
-          primaryRole: 'BAT',
-          battingStyle: 'Left-hand bat',
-          bowlingStyle: 'Right-arm offbreak',
-          isCapped: true,
-          isWicketkeeper: false,
-          isOverseas: false,
-          overall: 85,
-        },
-      ],
-      eligibility: [
-        {
-          playerId: 'virat-kohli',
-          seasonId: 'ipl-2025',
-          actualTeamId: 'rcb',
-          isAvailable: true,
-          actualSquadStatus: 'Active',
-        },
-      ],
-      statistics: [
-        {
-          playerId: 'virat-kohli',
-          seasonId: 'career',
-          matches: 252,
-          runs: 8004,
-          battingAverage: 38.67,
-          strikeRate: 131.97,
-          wickets: 4,
-          economy: 8.8,
-        },
-      ],
-    };
-
-    const ws = XLSX.utils.json_to_sheet(sample[importType]);
+    const ws = XLSX.utils.aoa_to_sheet([TARGET_FIELDS[importType]]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, importType);
-    XLSX.writeFile(wb, `ipl_${importType}_template.xlsx`);
+    XLSX.writeFile(wb, `squad25_${importType}_template.xlsx`);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,6 +124,16 @@ export function ImportsManagementPage() {
         const name = String(mapped.name || '').trim();
         const role = String(mapped.primaryRole || '').toUpperCase();
         if (!name) return { rowIndex: idx + 1, data: mapped, valid: false, error: 'Missing player name' };
+        const missingFields = ['dob', 'nationality', 'countryFlag', 'battingStyle', 'bowlingStyle']
+          .filter((field) => !String(mapped[field] || '').trim());
+        if (missingFields.length) {
+          return {
+            rowIndex: idx + 1,
+            data: mapped,
+            valid: false,
+            error: `Missing required fields: ${missingFields.join(', ')}`,
+          };
+        }
         if (!['WK', 'BAT', 'AR', 'BOWL'].includes(role)) {
           return { rowIndex: idx + 1, data: mapped, valid: false, error: `Invalid role "${role}" (expected WK/BAT/AR/BOWL)` };
         }
@@ -192,34 +168,33 @@ export function ImportsManagementPage() {
         if (importType === 'players') {
           const name = String(d.name).trim();
           const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-          const ovr = Number(d.overall) || 75;
           await upsertPlayerFull(
             {
               id,
               name,
               shortName: String(d.shortName || name),
-              dob: '1996-01-01',
-              nationality: String(d.nationality || 'India'),
-              countryFlag: String(d.countryFlag || 'IN').toUpperCase(),
+              dob: String(d.dob),
+              nationality: String(d.nationality),
+              countryFlag: String(d.countryFlag).toUpperCase(),
               biography: '',
               primaryRole: String(d.primaryRole).toUpperCase() as PlayerRole,
-              battingStyle: String(d.battingStyle || 'Right-hand bat'),
-              bowlingStyle: String(d.bowlingStyle || 'None'),
+              battingStyle: String(d.battingStyle),
+              bowlingStyle: String(d.bowlingStyle),
               isCapped: Boolean(d.isCapped === true || String(d.isCapped).toLowerCase() === 'true'),
               isWicketkeeper: Boolean(d.isWicketkeeper === true || String(d.isWicketkeeper).toLowerCase() === 'true'),
               isOverseas: Boolean(d.isOverseas === true || String(d.isOverseas).toLowerCase() === 'true'),
             },
             {
               playerId: id,
-              batting: ovr,
-              powerHitting: ovr,
-              technique: ovr,
-              finishing: ovr,
-              paceBowling: 30,
-              spinBowling: 30,
-              wicketkeeping: 0,
-              fielding: 75,
-              overall: ovr,
+              batting: Number(d.batting) || 0,
+              powerHitting: Number(d.powerHitting) || 0,
+              technique: Number(d.technique) || 0,
+              finishing: Number(d.finishing) || 0,
+              paceBowling: Number(d.paceBowling) || 0,
+              spinBowling: Number(d.spinBowling) || 0,
+              wicketkeeping: Number(d.wicketkeeping) || 0,
+              fielding: Number(d.fielding) || 0,
+              overall: Number(d.overall) || 0,
             }
           );
         } else if (importType === 'eligibility') {
@@ -244,7 +219,7 @@ export function ImportsManagementPage() {
             seasonId: sid,
             scope: sid === 'career' ? 'career' : 'season',
             matches: Number(d.matches) || 0,
-            inningsBat: Number(d.matches) || 0,
+            inningsBat: 0,
             runs: Number(d.runs) || 0,
             highestScore: '0',
             battingAverage: Number(d.battingAverage) || 0,
@@ -253,7 +228,7 @@ export function ImportsManagementPage() {
             halfCenturies: 0,
             fours: 0,
             sixes: 0,
-            inningsBowl: Number(d.matches) || 0,
+            inningsBowl: 0,
             overs: 0,
             runsConceded: 0,
             wickets: Number(d.wickets) || 0,

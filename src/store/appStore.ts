@@ -15,8 +15,8 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  selectedSeasonId: 'ipl-2025',
-  selectedTeamId: 'csk',
+  selectedSeasonId: '',
+  selectedTeamId: '',
   sidebarOpen: false,
   sidebarCollapsed: false,
   snackbar: { open: false, message: '', severity: 'info' },

@@ -1,6 +1,5 @@
 -- IPL Squad Builder schema for Supabase Auth and Postgres.
--- Catalog identifiers remain TEXT because the app uses stable keys such as
--- "ipl-2025", "csk", and player slugs.
+-- Catalog identifiers remain TEXT; Supabase Auth users use UUIDs.
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
@@ -44,13 +43,11 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  INSERT INTO public.profiles (id, display_name, email, favorite_team_id, default_season_id)
+  INSERT INTO public.profiles (id, display_name, email)
   VALUES (
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'display_name', split_part(NEW.email, '@', 1), 'Manager'),
-    NEW.email,
-    'csk',
-    'ipl-2025'
+    NEW.email
   )
   ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
@@ -162,15 +159,15 @@ CREATE TABLE IF NOT EXISTS public.player_statistics (
 
 CREATE TABLE IF NOT EXISTS public.player_ratings (
   player_id TEXT PRIMARY KEY REFERENCES public.players(id) ON DELETE CASCADE,
-  batting INTEGER NOT NULL DEFAULT 50 CHECK (batting BETWEEN 0 AND 100),
-  power_hitting INTEGER NOT NULL DEFAULT 50 CHECK (power_hitting BETWEEN 0 AND 100),
-  technique INTEGER NOT NULL DEFAULT 50 CHECK (technique BETWEEN 0 AND 100),
-  finishing INTEGER NOT NULL DEFAULT 50 CHECK (finishing BETWEEN 0 AND 100),
+  batting INTEGER NOT NULL DEFAULT 0 CHECK (batting BETWEEN 0 AND 100),
+  power_hitting INTEGER NOT NULL DEFAULT 0 CHECK (power_hitting BETWEEN 0 AND 100),
+  technique INTEGER NOT NULL DEFAULT 0 CHECK (technique BETWEEN 0 AND 100),
+  finishing INTEGER NOT NULL DEFAULT 0 CHECK (finishing BETWEEN 0 AND 100),
   pace_bowling INTEGER NOT NULL DEFAULT 0 CHECK (pace_bowling BETWEEN 0 AND 100),
   spin_bowling INTEGER NOT NULL DEFAULT 0 CHECK (spin_bowling BETWEEN 0 AND 100),
   wicketkeeping INTEGER NOT NULL DEFAULT 0 CHECK (wicketkeeping BETWEEN 0 AND 100),
-  fielding INTEGER NOT NULL DEFAULT 60 CHECK (fielding BETWEEN 0 AND 100),
-  overall INTEGER NOT NULL DEFAULT 50 CHECK (overall BETWEEN 0 AND 100),
+  fielding INTEGER NOT NULL DEFAULT 0 CHECK (fielding BETWEEN 0 AND 100),
+  overall INTEGER NOT NULL DEFAULT 0 CHECK (overall BETWEEN 0 AND 100),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

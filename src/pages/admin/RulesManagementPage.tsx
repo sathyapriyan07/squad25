@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  Alert,
   Button,
   Card,
   CardContent,
@@ -15,6 +16,7 @@ import {
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import { useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { useCatalog } from '../../hooks/useCatalog';
 import { upsertSeasonRule } from '../../services/dataService';
 import { useAppStore } from '../../store/appStore';
@@ -26,11 +28,15 @@ export function RulesManagementPage() {
   const qc = useQueryClient();
   const showSnackbar = useAppStore((s) => s.showSnackbar);
   const { catalog, activeSeason, isLoading } = useCatalog();
-  const [seasonId, setSeasonId] = useState(activeSeason?.id || 'ipl-2025');
+  const [selectedSeasonId, setSelectedSeasonId] = useState('');
   const [ruleForm, setRuleForm] = useState<SeasonRule | null>(null);
+  const seasonId = selectedSeasonId || activeSeason?.id || catalog?.seasons[0]?.id || '';
 
   useEffect(() => {
-    if (!catalog) return;
+    if (!catalog || !seasonId) {
+      setRuleForm(null);
+      return;
+    }
     const found = catalog.seasonRules.find((r) => r.seasonId === seasonId);
     setRuleForm(
       found || {
@@ -48,7 +54,22 @@ export function RulesManagementPage() {
     );
   }, [catalog, seasonId]);
 
-  if (isLoading || !catalog || !ruleForm) return <AdminLayout><LoadingState count={3} /></AdminLayout>;
+  if (isLoading || !catalog) return <AdminLayout><LoadingState count={3} /></AdminLayout>;
+
+  if (!seasonId) {
+    return (
+      <AdminLayout>
+        <Alert
+          severity="info"
+          action={<Button component={Link} to="/admin/seasons" color="inherit">Add a season</Button>}
+        >
+          Add a season before configuring squad rules.
+        </Alert>
+      </AdminLayout>
+    );
+  }
+
+  if (!ruleForm) return <AdminLayout><LoadingState count={3} /></AdminLayout>;
 
   const handleSave = async () => {
     await upsertSeasonRule(ruleForm);
@@ -75,7 +96,7 @@ export function RulesManagementPage() {
               <Grid size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth>
                   <InputLabel>Select Season</InputLabel>
-                  <Select label="Select Season" value={seasonId} onChange={(e) => setSeasonId(e.target.value)}>
+                  <Select label="Select Season" value={seasonId} onChange={(e) => setSelectedSeasonId(e.target.value)}>
                     {catalog.seasons.map((s) => (
                       <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
                     ))}

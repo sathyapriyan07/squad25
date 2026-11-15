@@ -40,8 +40,6 @@ export async function syncUserProfile(user: User): Promise<UserProfile> {
     display_name: user.user_metadata.display_name || user.email?.split('@')[0] || 'Manager',
     email: user.email ?? null,
     role: 'user',
-    favorite_team_id: 'csk',
-    default_season_id: 'ipl-2025',
     created_at: now,
     updated_at: now,
   };
@@ -119,7 +117,7 @@ export async function updateUserProfile(
     .from('profiles')
     .update({
       display_name: updates.displayName,
-      favorite_team_id: updates.favoriteTeamId ?? null,
+      favorite_team_id: updates.favoriteTeamId || null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', uid);

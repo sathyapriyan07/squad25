@@ -110,9 +110,10 @@ export function SquadBuilderPage() {
       setSelectedSeasonId(loadedSquad.seasonId);
       setSelectedTeamId(loadedSquad.teamId);
     } else if (!squadId) {
-      const qTeam = searchParams.get('team') || selectedTeamId || 'csk';
-      const qSeason = searchParams.get('season') || selectedSeasonId || 'ipl-2025';
+      const qTeam = searchParams.get('team') || selectedTeamId || catalog.teams[0]?.id;
+      const qSeason = searchParams.get('season') || selectedSeasonId || activeSeason?.id || catalog.seasons[0]?.id;
       const teamObj = catalog.teams.find((t) => t.id === qTeam) || catalog.teams[0];
+      if (!teamObj || !qSeason) return;
       if (!draft.ownerId || draft.id.startsWith('sq_') === false || (searchParams.get('team') && draft.teamId !== qTeam)) {
         initNewDraft({
           ownerId: user.uid,
@@ -129,7 +130,23 @@ export function SquadBuilderPage() {
         });
       }
     }
-  }, [catalog, user, squadId, loadedSquad]);
+  }, [
+    activeSeason,
+    catalog,
+    draft.id,
+    draft.ownerId,
+    draft.teamId,
+    initNewDraft,
+    loadSquad,
+    loadedSquad,
+    searchParams,
+    selectedSeasonId,
+    selectedTeamId,
+    setSelectedSeasonId,
+    setSelectedTeamId,
+    squadId,
+    user,
+  ]);
 
   const activeTeam = useMemo(
     () =>
@@ -317,8 +334,16 @@ export function SquadBuilderPage() {
     }
   };
 
-  if (isLoading || (squadId && loadingExisting) || !catalog || !activeRule) {
+  if (isLoading || (squadId && loadingExisting) || !catalog) {
     return <LoadingState count={4} />;
+  }
+
+  if (!activeSeason || !activeRule || participatingTeams.length === 0) {
+    return (
+      <Alert severity="info">
+        Catalog data is not ready for squad building. An administrator must add a season, participating franchises, players, and squad rules.
+      </Alert>
+    );
   }
 
   const playerDatabasePane = (

@@ -25,7 +25,7 @@ export function ProfilePage() {
   const { catalog } = useCatalog();
 
   const [displayName, setDisplayName] = useState(user?.displayName || '');
-  const [favoriteTeamId, setFavoriteTeamId] = useState(user?.favoriteTeamId || 'csk');
+  const [favoriteTeamId, setFavoriteTeamId] = useState(user?.favoriteTeamId || '');
   const [saving, setSaving] = useState(false);
 
   if (!user) return null;

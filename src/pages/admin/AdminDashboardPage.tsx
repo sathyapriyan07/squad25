@@ -1,6 +1,4 @@
-import { useState } from 'react';
 import {
-  Alert,
   Button,
   Card,
   CardContent,
@@ -14,43 +12,23 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useCatalog } from '../../hooks/useCatalog';
 import { useAllSquadsAdmin } from '../../hooks/useSquads';
 import {
-  bootstrapCatalogToSupabase,
   fetchAllUsersAdmin,
   fetchImportLogs,
 } from '../../services/dataService';
-import { useAppStore } from '../../store/appStore';
 import { LoadingState, PageHeader, StatCard } from '../../components/common/CommonUi';
 import { AdminLayout } from './AdminLayout';
 
 export function AdminDashboardPage() {
-  const qc = useQueryClient();
-  const showSnackbar = useAppStore((s) => s.showSnackbar);
   const { catalog, isLoading } = useCatalog();
   const { data: allSquads = [] } = useAllSquadsAdmin();
   const { data: users = [] } = useQuery({ queryKey: ['admin_users'], queryFn: fetchAllUsersAdmin });
   const { data: importLogs = [] } = useQuery({ queryKey: ['import_logs'], queryFn: fetchImportLogs });
-
-  const [seeding, setSeeding] = useState(false);
-
-  const handleBootstrap = async () => {
-    setSeeding(true);
-    try {
-      await bootstrapCatalogToSupabase();
-      await qc.invalidateQueries({ queryKey: ['catalog'] });
-      showSnackbar('Official IPL catalog (2008–2027) synced to Supabase!', 'success');
-    } catch (err) {
-      showSnackbar(err instanceof Error ? err.message : 'Failed to sync catalog', 'error');
-    } finally {
-      setSeeding(false);
-    }
-  };
 
   if (isLoading || !catalog) return <AdminLayout><LoadingState count={3} /></AdminLayout>;
 
@@ -62,6 +40,9 @@ export function AdminDashboardPage() {
           subtitle="Manage IPL seasons, franchises, players, statistics, ratings, eligibility, rules, and bulk Excel imports."
           actions={
             <>
+              <Button variant="outlined" component={Link} to="/admin/seasons">
+                Manage seasons
+              </Button>
               <Button
                 variant="outlined"
                 component={Link}
@@ -70,22 +51,14 @@ export function AdminDashboardPage() {
               >
                 Excel Imports
               </Button>
-              <Button
-                variant="contained"
-                startIcon={<CloudUploadIcon />}
-                onClick={handleBootstrap}
-                disabled={seeding}
-              >
-                {seeding ? 'Syncing...' : catalog.isFromSupabase ? 'Re-Sync Reference Catalog' : 'Persist Catalog to Supabase'}
-              </Button>
             </>
           }
         />
 
-        {!catalog.isFromSupabase && (
-          <Alert severity="warning">
-            Catalog is currently running from the local reference dataset because Supabase catalog tables have not been populated yet. Click <strong>Persist Catalog to Supabase</strong> above to initialize live admin editing.
-          </Alert>
+        {catalog.seasons.length === 0 && (
+          <Typography variant="body2" color="text.secondary">
+            No catalog data yet. Add seasons and franchises, then add players and season rules using the administration pages.
+          </Typography>
         )}
 
         <Grid container spacing={2}>

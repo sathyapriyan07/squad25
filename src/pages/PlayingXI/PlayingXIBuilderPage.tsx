@@ -192,12 +192,22 @@ export function PlayingXIBuilderPage() {
   }, [localSquad, playersMap, eligibilityMap, activeRule]);
 
   if (squadLoading || catalogLoading) return <LoadingState count={4} />;
-  if (!localSquad || !activeRule) {
+  if (!localSquad) {
     return (
       <EmptyState
         title="Squad not found"
         description="Select a saved squad first to configure its Playing XI and Impact Player."
         action={<Button variant="contained" onClick={() => navigate('/saved-squads')}>Go to Saved Squads</Button>}
+      />
+    );
+  }
+
+  if (!activeRule) {
+    return (
+      <EmptyState
+        title="Season rules are not configured"
+        description="An administrator must configure squad rules for this season before the Playing XI can be set."
+        action={<Button variant="outlined" onClick={() => navigate('/saved-squads')}>Back to Saved Squads</Button>}
       />
     );
   }

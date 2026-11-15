@@ -502,8 +502,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 <Divider sx={{ mb: 1.5 }} />
                 <Stack spacing={1.25}>
                   <Alert severity="info" variant="outlined" sx={{ py: 0.5 }}>
-                    Active Cycle: <strong>{activeSeason?.name || 'IPL 2025'}</strong> — Impact Player{' '}
-                    {activeSeason?.impactPlayerEnabled ? 'Enabled' : 'Disabled'}.
+                    {activeSeason
+                      ? `${activeSeason.name} — Impact Player ${activeSeason.impactPlayerEnabled ? 'Enabled' : 'Disabled'}`
+                      : 'No season has been configured yet'}
                   </Alert>
                   {user && (
                     <Typography variant="caption" color="text.secondary">
@@ -579,6 +580,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
         </AppBar>
 
         <Box component="main" sx={{ flex: 1, p: { xs: 2, sm: 2.5, md: 3 }, maxWidth: 1600, width: '100%', mx: 'auto' }}>
+          {catalog?.loadError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {catalog.loadError}
+            </Alert>
+          )}
           {children}
         </Box>
       </Box>

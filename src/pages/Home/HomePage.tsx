@@ -136,12 +136,16 @@ export function HomePage() {
             <Chip
               size="small"
               icon={<SportsCricketIcon sx={{ fontSize: 15 }} />}
-              label={`Active Cycle: ${activeSeason?.name || 'IPL 2025'}`}
+              label={`Active Cycle: ${activeSeason?.name || 'No season configured'}`}
               sx={{ bgcolor: 'rgba(59,130,246,0.18)', color: '#93C5FD', border: '1px solid rgba(59,130,246,0.35)' }}
             />
             <Chip
               size="small"
-              label={activeSeason?.impactPlayerEnabled ? 'Impact Player Active' : 'Classic XI Rules'}
+              label={
+                activeSeason
+                  ? activeSeason.impactPlayerEnabled ? 'Impact Player Active' : 'Classic XI Rules'
+                  : 'No season configured'
+              }
               variant="outlined"
               sx={{ borderColor: 'rgba(255,255,255,0.18)' }}
             />
@@ -208,7 +212,7 @@ export function HomePage() {
           <StatCard
             label="Players Eligible"
             value={eligiblePlayers.length}
-            sublabel={`For ${activeSeason?.name || 'selected season'}`}
+            sublabel={activeSeason ? `For ${activeSeason.name}` : 'No season selected'}
             icon={<GroupsIcon />}
             accentColor="#3B82F6"
           />
@@ -299,7 +303,7 @@ export function HomePage() {
         <Stack direction="row" sx={{ mb: 2, justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
             <Typography variant="h5">
-              Participating Franchises ({activeSeason?.name || 'IPL 2025'})
+              Participating Franchises ({activeSeason?.name || 'No season configured'})
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Select a franchise to launch the squad builder with team branding.

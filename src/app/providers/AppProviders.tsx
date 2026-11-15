@@ -5,8 +5,6 @@ import { createIplTheme } from '../theme/theme';
 import { subscribeToAuth, syncUserProfile } from '../../services/authService';
 import { isSupabaseConfigured } from '../../services/supabase/client';
 import { useAuthStore } from '../../store/authStore';
-import { useAppStore } from '../../store/appStore';
-import { SEED_TEAMS } from '../../services/seed/iplCatalogSeed';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -19,14 +17,7 @@ const queryClient = new QueryClient({
 
 export function AppProviders({ children }: { children: ReactNode }) {
   const { setUser, setLoading, setInitialized } = useAuthStore();
-  const selectedTeamId = useAppStore((s) => s.selectedTeamId);
-
-  const accentColor = useMemo(() => {
-    const team = SEED_TEAMS.find((t) => t.id === selectedTeamId);
-    return team?.primaryColor || '#3B82F6';
-  }, [selectedTeamId]);
-
-  const theme = useMemo(() => createIplTheme(accentColor), [accentColor]);
+  const theme = useMemo(() => createIplTheme(), []);
 
   useEffect(() => {
     if (!isSupabaseConfigured) {

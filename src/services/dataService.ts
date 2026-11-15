@@ -1,14 +1,4 @@
 import { isSupabaseConfigured, supabase } from './supabase/client';
-import {
-  SEED_PLAYER_RATINGS,
-  SEED_PLAYER_SEASONS,
-  SEED_PLAYER_STATISTICS,
-  SEED_PLAYERS,
-  SEED_SEASON_RULES,
-  SEED_SEASON_TEAMS,
-  SEED_SEASONS,
-  SEED_TEAMS,
-} from './seed/iplCatalogSeed';
 import type {
   CustomSquad,
   ImportLog,
@@ -35,7 +25,21 @@ export interface CatalogBundle {
   playerSeasons: PlayerSeasonEligibility[];
   playerStats: PlayerStatistics[];
   playerRatings: PlayerRatings[];
-  isFromSupabase: boolean;
+  loadError?: string;
+}
+
+function emptyCatalog(loadError?: string): CatalogBundle {
+  return {
+    seasons: [],
+    teams: [],
+    seasonTeams: [],
+    seasonRules: [],
+    players: [],
+    playerSeasons: [],
+    playerStats: [],
+    playerRatings: [],
+    loadError,
+  };
 }
 
 function getSupabase() {
@@ -77,20 +81,11 @@ async function upsertRows(table: string, values: object[], onConflict = 'id'): P
   if (error) throw error;
 }
 
-function localCatalog(): Omit<CatalogBundle, 'isFromSupabase'> {
-  return {
-    seasons: SEED_SEASONS,
-    teams: SEED_TEAMS,
-    seasonTeams: SEED_SEASON_TEAMS,
-    seasonRules: SEED_SEASON_RULES,
-    players: SEED_PLAYERS,
-    playerSeasons: SEED_PLAYER_SEASONS,
-    playerStats: SEED_PLAYER_STATISTICS,
-    playerRatings: SEED_PLAYER_RATINGS,
-  };
-}
-
 export async function fetchCatalogBundle(): Promise<CatalogBundle> {
+  if (!isSupabaseConfigured || !supabase) {
+    return emptyCatalog('Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+  }
+
   try {
     const [
       seasons,
@@ -112,10 +107,6 @@ export async function fetchCatalogBundle(): Promise<CatalogBundle> {
       selectRows<PlayerRatings>('player_ratings'),
     ]);
 
-    if (!seasons.length || !teams.length || !players.length) {
-      return { ...localCatalog(), isFromSupabase: false };
-    }
-
     return {
       seasons: seasons.sort((a, b) => b.year - a.year),
       teams,
@@ -125,23 +116,12 @@ export async function fetchCatalogBundle(): Promise<CatalogBundle> {
       playerSeasons,
       playerStats,
       playerRatings,
-      isFromSupabase: true,
     };
   } catch (error) {
-    console.warn('Supabase catalog read failed; using the bundled reference catalog.', error);
-    return { ...localCatalog(), isFromSupabase: false };
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('Supabase catalog read failed:', error);
+    return emptyCatalog(`Could not load catalog data from Supabase: ${message}`);
   }
-}
-
-export async function bootstrapCatalogToSupabase(): Promise<void> {
-  await upsertRows('seasons', SEED_SEASONS);
-  await upsertRows('teams', SEED_TEAMS);
-  await upsertRows('season_teams', SEED_SEASON_TEAMS);
-  await upsertRows('season_rules', SEED_SEASON_RULES, 'season_id');
-  await upsertRows('players', SEED_PLAYERS);
-  await upsertRows('player_seasons', SEED_PLAYER_SEASONS);
-  await upsertRows('player_statistics', SEED_PLAYER_STATISTICS);
-  await upsertRows('player_ratings', SEED_PLAYER_RATINGS, 'player_id');
 }
 
 export function buildPlayersForSeason(
@@ -176,15 +156,15 @@ export function buildPlayersForSeason(
   return catalog.players.map((player) => {
     const defaultRatings: PlayerRatings = {
       playerId: player.id,
-      batting: 50,
-      powerHitting: 50,
-      technique: 50,
-      finishing: 50,
+      batting: 0,
+      powerHitting: 0,
+      technique: 0,
+      finishing: 0,
       paceBowling: 0,
       spinBowling: 0,
-      wicketkeeping: player.isWicketkeeper ? 75 : 0,
-      fielding: 70,
-      overall: 65,
+      wicketkeeping: 0,
+      fielding: 0,
+      overall: 0,
     };
     const defaultStats: PlayerStatistics = {
       id: `${player.id}_career`,

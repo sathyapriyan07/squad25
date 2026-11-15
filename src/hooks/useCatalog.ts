@@ -26,19 +26,7 @@ export function useCatalog(overrideSeasonId?: string) {
 
   const activeRule = useMemo(() => {
     if (!catalog || !activeSeason) return undefined;
-    return (
-      catalog.seasonRules.find((r) => r.seasonId === activeSeason.id) ?? {
-        seasonId: activeSeason.id,
-        minSquadSize: 18,
-        maxSquadSize: 25,
-        maxOverseas: 8,
-        playingXiSize: 11,
-        maxOverseasInXi: 4,
-        minIndianPlayers: 10,
-        impactPlayerEnabled: activeSeason.impactPlayerEnabled,
-        maxSubstitutes: 5,
-      }
-    );
+    return catalog.seasonRules.find((r) => r.seasonId === activeSeason.id);
   }, [catalog, activeSeason]);
 
   const participatingTeams = useMemo(() => {
