@@ -28,8 +28,6 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import BuildIcon from '@mui/icons-material/Build';
-import CheckIcon from '@mui/icons-material/Check';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {
   Bar,
@@ -497,8 +495,7 @@ export function PlayerDetailPage() {
     showSnackbar(`${player.shortName} removed from ${draft.name}`, 'info');
   };
 
-  const addToSquadAction = hasActiveDraft ? (
-    isInDraft ? (
+  const addToSquadAction = !hasActiveDraft ? null : isInDraft ? (
       <Button variant="outlined" color="error" startIcon={<DeleteIcon />} onClick={handleRemoveFromDraft}>
         Remove from squad
       </Button>
@@ -512,16 +509,6 @@ export function PlayerDetailPage() {
       >
         Add to squad
       </Button>
-    )
-  ) : (
-    <Button
-      variant="contained"
-      startIcon={<BuildIcon />}
-      onClick={() => navigate(`/builder?season=${activeSeason.id}`)}
-      sx={{ bgcolor: accentColor, color: '#FFF', '&:hover': { bgcolor: accentColor, filter: 'brightness(0.92)' } }}
-    >
-      Open squad builder
-    </Button>
   );
 
   const careerMetrics: Metric[] = [
@@ -1111,13 +1098,10 @@ export function PlayerDetailPage() {
         team={player.actualTeam}
         accentColor={accentColor}
         activeSeasonName={activeSeason.name}
-        isAvailable={isAvailable}
-        isOverseas={isOverseas}
         careerMatches={careerStats?.matches}
         seasonsPlayed={seasonsPlayed}
         overallRating={hasRatings ? player.ratings.overall : undefined}
         actions={addToSquadAction}
-        onViewCareer={() => setTab('career')}
       />
 
       <Card sx={{ overflow: 'hidden' }}>

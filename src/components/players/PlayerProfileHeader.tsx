@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Box, Card, CardContent, Chip, Grid, Stack, Typography } from '@mui/material';
+import { Box, Card, CardContent, Grid, Stack, Typography } from '@mui/material';
 import { getCountryFlagEmoji } from '../common/PlayerAvatar';
 import { TeamLogo } from '../common/TeamLogo';
 import type { PlayerWithDetails, Team } from '../../types/ipl';
@@ -9,13 +9,10 @@ interface PlayerProfileHeaderProps {
   team?: Team;
   accentColor: string;
   activeSeasonName: string;
-  isAvailable: boolean;
-  isOverseas: boolean;
   careerMatches?: number;
   seasonsPlayed: number;
   overallRating?: number;
   actions: ReactNode;
-  onViewCareer: () => void;
 }
 
 export function PlayerProfileHeader({
@@ -23,17 +20,20 @@ export function PlayerProfileHeader({
   team,
   accentColor,
   activeSeasonName,
-  isAvailable,
-  isOverseas,
   careerMatches,
   seasonsPlayed,
   overallRating,
   actions,
-  onViewCareer,
 }: PlayerProfileHeaderProps) {
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const imageUrl = player.imageUrl?.trim() || '';
   const showImage = Boolean(imageUrl && imageUrl !== failedImageUrl);
+  const roleLabel = {
+    WK: 'Wicketkeeper',
+    BAT: 'Batter',
+    AR: 'All-rounder',
+    BOWL: 'Bowler',
+  }[player.primaryRole] || player.primaryRole;
   const initials = player.name
     .split(/\s+/)
     .filter(Boolean)
@@ -141,20 +141,15 @@ export function PlayerProfileHeader({
                   )}
                 </Stack>
                 <Stack direction="row" spacing={1.25} useFlexGap sx={{ mt: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <Chip size="small" label={player.primaryRole} variant="outlined" sx={{ borderColor: `${accentColor}99`, color: accentColor }} />
-                  <Chip size="small" label={isOverseas ? 'Overseas' : 'Indian'} variant="outlined" />
+                  <Typography variant="body2" sx={{ color: accentColor, fontWeight: 600 }}>
+                    {roleLabel}
+                  </Typography>
                   <Typography variant="body2" color="text.secondary">
                     {getCountryFlagEmoji(player.countryFlag || '')} {player.nationality || 'Nationality not recorded'}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     {player.isCapped ? 'Capped' : 'Uncapped'}
                   </Typography>
-                  <Chip
-                    size="small"
-                    label={isAvailable ? `Eligible · ${activeSeasonName}` : `Unavailable · ${activeSeasonName}`}
-                    color={isAvailable ? 'success' : 'default'}
-                    variant="outlined"
-                  />
                 </Stack>
               </Box>
 
@@ -199,13 +194,6 @@ export function PlayerProfileHeader({
                 </Stack>
                 <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', justifyContent: { xs: 'stretch', sm: 'flex-end' } }}>
                   {actions}
-                  <Chip
-                    label="Career history"
-                    clickable
-                    variant="outlined"
-                    onClick={onViewCareer}
-                    sx={{ borderColor: `${accentColor}66`, color: 'text.secondary' }}
-                  />
                 </Stack>
               </Stack>
             </Stack>

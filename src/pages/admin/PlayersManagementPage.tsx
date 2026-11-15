@@ -69,6 +69,39 @@ const playerSchema = z.object({
 
 type PlayerFormValues = z.infer<typeof playerSchema>;
 
+const COUNTRY_OPTIONS = [
+  { code: 'AF', name: 'Afghanistan' },
+  { code: 'AU', name: 'Australia' },
+  { code: 'BD', name: 'Bangladesh' },
+  { code: 'GB', name: 'England' },
+  { code: 'IE', name: 'Ireland' },
+  { code: 'IN', name: 'India' },
+  { code: 'LK', name: 'Sri Lanka' },
+  { code: 'NZ', name: 'New Zealand' },
+  { code: 'PK', name: 'Pakistan' },
+  { code: 'SG', name: 'Singapore' },
+  { code: 'ZA', name: 'South Africa' },
+  { code: 'ZW', name: 'Zimbabwe' },
+  { code: 'WI', name: 'West Indies' },
+];
+
+const BATTING_STYLE_OPTIONS = ['Right-hand bat', 'Left-hand bat'];
+
+const BOWLING_STYLE_OPTIONS = [
+  'Right-arm fast',
+  'Right-arm fast-medium',
+  'Right-arm medium-fast',
+  'Right-arm medium',
+  'Right-arm off-break',
+  'Right-arm leg-break',
+  'Left-arm fast',
+  'Left-arm fast-medium',
+  'Left-arm medium-fast',
+  'Left-arm medium',
+  'Left-arm orthodox',
+  'Left-arm wrist spin',
+];
+
 function getErrorMessage(error: unknown): string {
   if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
     return error.message;
@@ -117,6 +150,17 @@ export function PlayersManagementPage() {
 
   const ratingsMap = new Map(catalog.playerRatings.map((r) => [r.playerId, r]));
   const currentImageUrl = watch('imageUrl');
+  const currentCountryCode = watch('countryFlag');
+  const currentBattingStyle = watch('battingStyle');
+  const currentBowlingStyle = watch('bowlingStyle');
+  const countryOptions = [
+    ...COUNTRY_OPTIONS,
+    ...catalog.players
+      .map((player) => String(player.countryFlag ?? '').trim().toUpperCase())
+      .filter((code) => code && !COUNTRY_OPTIONS.some((option) => option.code === code))
+      .filter((code, index, codes) => codes.indexOf(code) === index)
+      .map((code) => ({ code, name: code })),
+  ];
 
   const syncPlayerCatalog = (player: Player, ratings?: PlayerRatings) => {
     qc.setQueryData<CatalogBundle>(['catalog'], (current) => {
@@ -172,7 +216,7 @@ export function PlayersManagementPage() {
       shortName: p.shortName,
       dob: p.dob || '',
       nationality: p.nationality,
-      countryFlag: p.countryFlag,
+      countryFlag: (p.countryFlag || '').toUpperCase(),
       imageUrl: p.imageUrl || '',
       biography: p.biography,
       primaryRole: p.primaryRole,
@@ -361,7 +405,27 @@ export function PlayersManagementPage() {
                   <Controller
                     name="countryFlag"
                     control={control}
-                    render={({ field }) => <TextField {...field} label="Country Code (IN, AU, GB...)" fullWidth />}
+                    render={({ field }) => (
+                      <FormControl fullWidth error={Boolean(errors.countryFlag)}>
+                        <InputLabel>Country Code</InputLabel>
+                        <Select {...field} label="Country Code">
+                          <MenuItem value=""><em>Select a country</em></MenuItem>
+                          {currentCountryCode && !countryOptions.some((option) => option.code === currentCountryCode.toUpperCase()) && (
+                            <MenuItem value={currentCountryCode}>{currentCountryCode}</MenuItem>
+                          )}
+                          {countryOptions.map((option) => (
+                            <MenuItem key={option.code} value={option.code}>
+                              {option.name} ({option.code})
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        {errors.countryFlag && (
+                          <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.75 }}>
+                            {errors.countryFlag.message}
+                          </Typography>
+                        )}
+                      </FormControl>
+                    )}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>
@@ -392,14 +456,45 @@ export function PlayersManagementPage() {
                   <Controller
                     name="battingStyle"
                     control={control}
-                    render={({ field }) => <TextField {...field} label="Batting Style" fullWidth />}
+                    render={({ field }) => (
+                      <FormControl fullWidth error={Boolean(errors.battingStyle)}>
+                        <InputLabel>Batting Style</InputLabel>
+                        <Select {...field} label="Batting Style">
+                          <MenuItem value=""><em>Select a batting style</em></MenuItem>
+                          {currentBattingStyle && !BATTING_STYLE_OPTIONS.includes(currentBattingStyle) && (
+                            <MenuItem value={currentBattingStyle}>{currentBattingStyle}</MenuItem>
+                          )}
+                          {BATTING_STYLE_OPTIONS.map((style) => (
+                            <MenuItem key={style} value={style}>{style}</MenuItem>
+                          ))}
+                        </Select>
+                        {errors.battingStyle && (
+                          <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.75 }}>
+                            {errors.battingStyle.message}
+                          </Typography>
+                        )}
+                      </FormControl>
+                    )}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>
                   <Controller
                     name="bowlingStyle"
                     control={control}
-                    render={({ field }) => <TextField {...field} label="Bowling Style" fullWidth />}
+                    render={({ field }) => (
+                      <FormControl fullWidth>
+                        <InputLabel>Bowling Style</InputLabel>
+                        <Select {...field} label="Bowling Style">
+                          <MenuItem value=""><em>Not applicable</em></MenuItem>
+                          {currentBowlingStyle && !BOWLING_STYLE_OPTIONS.includes(currentBowlingStyle) && (
+                            <MenuItem value={currentBowlingStyle}>{currentBowlingStyle}</MenuItem>
+                          )}
+                          {BOWLING_STYLE_OPTIONS.map((style) => (
+                            <MenuItem key={style} value={style}>{style}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    )}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 8 }}>
