@@ -61,7 +61,7 @@ export interface Player {
   id: string;
   name: string;
   shortName: string;
-  dob: string;
+  dob: string | null;
   nationality: string;
   countryFlag: string;
   imageUrl?: string;

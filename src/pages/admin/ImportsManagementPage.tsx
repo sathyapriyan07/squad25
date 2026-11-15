@@ -124,7 +124,7 @@ export function ImportsManagementPage() {
         const name = String(mapped.name || '').trim();
         const role = String(mapped.primaryRole || '').toUpperCase();
         if (!name) return { rowIndex: idx + 1, data: mapped, valid: false, error: 'Missing player name' };
-        const missingFields = ['dob', 'nationality', 'countryFlag', 'battingStyle', 'bowlingStyle']
+        const missingFields = ['nationality', 'countryFlag', 'battingStyle']
           .filter((field) => !String(mapped[field] || '').trim());
         if (missingFields.length) {
           return {
@@ -173,13 +173,13 @@ export function ImportsManagementPage() {
               id,
               name,
               shortName: String(d.shortName || name),
-              dob: String(d.dob),
+              dob: String(d.dob ?? '').trim() || null,
               nationality: String(d.nationality),
               countryFlag: String(d.countryFlag).toUpperCase(),
               biography: '',
               primaryRole: String(d.primaryRole).toUpperCase() as PlayerRole,
               battingStyle: String(d.battingStyle),
-              bowlingStyle: String(d.bowlingStyle),
+              bowlingStyle: String(d.bowlingStyle ?? '').trim(),
               isCapped: Boolean(d.isCapped === true || String(d.isCapped).toLowerCase() === 'true'),
               isWicketkeeper: Boolean(d.isWicketkeeper === true || String(d.isWicketkeeper).toLowerCase() === 'true'),
               isOverseas: Boolean(d.isOverseas === true || String(d.isOverseas).toLowerCase() === 'true'),

@@ -455,7 +455,7 @@ export function PlayerDetailPage() {
                     </Grid>
                     <Grid size={{ xs: 6 }}>
                       <Typography variant="caption" color="text.secondary">Date of Birth</Typography>
-                      <Typography variant="body1" className="tabular-nums" sx={{ fontWeight: 600 }}>{player.dob}</Typography>
+                      <Typography variant="body1" className="tabular-nums" sx={{ fontWeight: 600 }}>{player.dob || '—'}</Typography>
                     </Grid>
                     <Grid size={{ xs: 6 }}>
                       <Typography variant="caption" color="text.secondary">{activeSeason.name} Status</Typography>
