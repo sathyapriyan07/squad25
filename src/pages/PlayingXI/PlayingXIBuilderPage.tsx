@@ -350,6 +350,7 @@ export function PlayingXIBuilderPage() {
                 onRemove={(player) => handleRemoveFromXI(player.id)}
                 onViewDetails={(player) => navigate(`/players/${player.id}`)}
                 accentColor={accentColor}
+                cardStyle="directory"
                 actionLabel="Add to XI"
                 selectedActionLabel="In Playing XI"
                 compact

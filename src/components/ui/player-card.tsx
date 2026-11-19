@@ -90,7 +90,7 @@ function PlayerCard({
         transition: 'border-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease',
         '&:hover': {
           borderColor: isDirectoryCard ? 'transparent' : selected ? accentColor : 'rgba(255,255,255,0.22)',
-          boxShadow: selected ? `0 0 0 1px ${accentColor}33` : isDirectoryCard ? 'none' : '0 10px 24px rgba(0,0,0,0.24)',
+          boxShadow: isDirectoryCard ? 'none' : selected ? `0 0 0 1px ${accentColor}33` : '0 10px 24px rgba(0,0,0,0.24)',
         },
         '&:hover .player-card-image': {
           transform: 'scale(1.045)',

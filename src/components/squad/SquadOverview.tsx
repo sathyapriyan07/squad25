@@ -15,7 +15,6 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
 import type { PlayerWithDetails, SeasonRule, SquadValidationResult, TeamRatingBreakdown } from '../../types/ipl';
-import { PlayerAvatar } from '../common/PlayerAvatar';
 
 interface SquadOverviewProps {
   players: PlayerWithDetails[];
@@ -157,24 +156,33 @@ export function SquadOverview({
               Add players to start your squad
             </Typography>
           ) : (
-            <Stack sx={{ maxHeight: 420, overflowY: 'auto' }}>
+            <Stack spacing={0.75} sx={{ maxHeight: 420, overflowY: 'auto' }}>
               {players.map((player, index) => (
                 <Stack
                   key={player.id}
                   direction="row"
-                  spacing={1}
+                  spacing={0.75}
                   sx={{
                     alignItems: 'center',
-                    py: 1,
-                    borderBottom: index < players.length - 1 ? '1px solid' : undefined,
-                    borderColor: 'divider',
+                    px: 0.75,
+                    py: 0.5,
+                    borderRadius: '8px',
+                    bgcolor: '#03162B',
+                    backgroundImage: 'repeating-conic-gradient(from 15deg at 50% 60%, rgba(28,114,154,0.12) 0deg 14deg, transparent 14deg 29deg)',
                   }}
                 >
-                  <PlayerAvatar player={player} size={32} minimal />
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography variant="body2" noWrap>{player.shortName}</Typography>
+                    <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>{player.name}</Typography>
                     <Typography variant="caption" color="text.secondary" noWrap>
-                      {player.primaryRole} · {player.isOverseas ? 'Overseas' : 'Indian'}
+                      {player.primaryRole}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ minWidth: 34, textAlign: 'right' }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.58rem', lineHeight: 1 }}>
+                      OVR
+                    </Typography>
+                    <Typography variant="body2" className="tabular-nums" sx={{ fontWeight: 700 }}>
+                      {player.ratings.overall}
                     </Typography>
                   </Box>
                   <Tooltip title="Move up">

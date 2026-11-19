@@ -407,6 +407,7 @@ export function SquadBuilderPage() {
           )
         }
         accentColor={accentColor}
+        cardStyle="directory"
         columns={{ xs: 2, sm: 2, md: 3, lg: 4, xl: 5 }}
         page={page}
         pageSize={pageSize}
