@@ -38,6 +38,8 @@ export function PlayerProfileHeader({
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join('');
+  const [firstName, ...remainingNameParts] = player.name.trim().split(/\s+/);
+  const remainingName = remainingNameParts.join(' ');
 
   return (
     <Box component="section" sx={{ overflow: 'hidden' }}>
@@ -97,29 +99,47 @@ export function PlayerProfileHeader({
                 pointerEvents: 'none',
               }}
             />
+            {overallRating !== undefined && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 14,
+                  right: 16,
+                  zIndex: 1,
+                  minWidth: 48,
+                  textAlign: 'right',
+                }}
+              >
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.78)', display: 'block' }}>
+                  OVR
+                </Typography>
+                <Typography className="tabular-nums" sx={{ color: accentColor, fontSize: '1.75rem', fontWeight: 800, lineHeight: 1 }}>
+                  {overallRating}
+                </Typography>
+              </Box>
+            )}
           </Box>
         </Grid>
         <Grid size={{ xs: 12, md: 8 }}>
           <Box sx={{ p: { xs: 2, sm: 2.5, md: 3 }, height: '100%', boxSizing: 'border-box' }}>
             <Stack spacing={2} sx={{ height: '100%' }}>
               <Box>
-                <Stack direction="row" spacing={2} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                <Box sx={{ position: 'relative' }}>
                   <Typography
                     variant="h3"
-                    sx={{ fontSize: { xs: '1.65rem', sm: '2rem', md: '2.35rem' }, lineHeight: 1.05, fontWeight: 750 }}
+                    sx={{
+                      px: { xs: 6, sm: 7 },
+                      textAlign: 'center',
+                      fontSize: { xs: '1.65rem', sm: '2rem', md: '2.35rem' },
+                      lineHeight: 1.05,
+                      fontWeight: 750,
+                    }}
                   >
-                    {player.name}
+                    {firstName || player.name}
+                    {remainingName && <Box component="span" sx={{ display: 'block' }}>{remainingName}</Box>}
                   </Typography>
-                  {overallRating !== undefined && (
-                    <Box sx={{ flexShrink: 0, minWidth: 54, textAlign: 'right' }}>
-                      <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.58)', display: 'block' }}>OVR</Typography>
-                      <Typography className="tabular-nums" sx={{ color: accentColor, fontSize: '1.75rem', fontWeight: 800, lineHeight: 1 }}>
-                        {overallRating}
-                      </Typography>
-                    </Box>
-                  )}
-                </Stack>
-                <Stack direction="row" spacing={1.25} useFlexGap sx={{ mt: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+                </Box>
+                <Stack direction="row" spacing={1.25} useFlexGap sx={{ mt: { xs: 2, sm: 2.5 }, alignItems: 'center', flexWrap: 'wrap' }}>
                   <Typography variant="body2" sx={{ color: accentColor, fontWeight: 600 }}>
                     {roleLabel}
                   </Typography>
