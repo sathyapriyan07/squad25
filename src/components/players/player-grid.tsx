@@ -24,6 +24,7 @@ export interface PlayerGridProps {
   selectedActionLabel?: string;
   showAction?: boolean;
   compact?: boolean;
+  horizontal?: boolean;
   loading?: boolean;
   skeletonCount?: number;
   columns?: ResponsiveColumns;
@@ -34,20 +35,40 @@ export interface PlayerGridProps {
   emptyDescription?: string;
 }
 
-function PlayerCardSkeleton({ compact }: { compact: boolean }) {
+function PlayerCardSkeleton({ compact, horizontal }: { compact: boolean; horizontal: boolean }) {
+  const image = (
+    <Skeleton
+      variant="rectangular"
+      width={horizontal ? (compact ? 120 : 140) : '100%'}
+      height={horizontal ? '100%' : compact ? 155 : 230}
+      animation="wave"
+      sx={{
+        minHeight: horizontal ? (compact ? 145 : 160) : undefined,
+        bgcolor: 'rgba(255,255,255,0.07)',
+      }}
+    />
+  );
+  const details = (
+    <CardContent sx={{ p: 2, flex: 1, minWidth: 0 }}>
+      <Skeleton width="68%" sx={{ bgcolor: 'rgba(255,255,255,0.07)' }} />
+      <Skeleton width="88%" sx={{ bgcolor: 'rgba(255,255,255,0.07)' }} />
+      <Skeleton height={38} sx={{ mt: 1.5, bgcolor: 'rgba(255,255,255,0.07)' }} />
+    </CardContent>
+  );
+
   return (
-    <Card sx={{ height: '100%', overflow: 'hidden', borderRadius: '18px' }}>
-      <Skeleton
-        variant="rectangular"
-        height={compact ? 155 : 230}
-        animation="wave"
-        sx={{ bgcolor: 'rgba(255,255,255,0.07)' }}
-      />
-      <CardContent sx={{ p: 2 }}>
-        <Skeleton width="68%" sx={{ bgcolor: 'rgba(255,255,255,0.07)' }} />
-        <Skeleton width="88%" sx={{ bgcolor: 'rgba(255,255,255,0.07)' }} />
-        <Skeleton height={38} sx={{ mt: 1.5, bgcolor: 'rgba(255,255,255,0.07)' }} />
-      </CardContent>
+    <Card
+      sx={{
+        height: '100%',
+        minHeight: horizontal ? (compact ? 145 : 160) : undefined,
+        display: 'flex',
+        flexDirection: horizontal ? 'row' : 'column',
+        overflow: 'hidden',
+        borderRadius: '18px',
+      }}
+    >
+      {image}
+      {details}
     </Card>
   );
 }
@@ -63,6 +84,7 @@ export function PlayerGrid({
   selectedActionLabel,
   showAction,
   compact = false,
+  horizontal = false,
   loading = false,
   skeletonCount = 8,
   columns = { xs: 2, sm: 3, md: 4, lg: 5 },
@@ -99,7 +121,7 @@ export function PlayerGrid({
         {loading
           ? Array.from({ length: Math.max(1, skeletonCount) }, (_, index) => (
               <Grid key={`player-skeleton-${index}`} size={gridSize}>
-                <PlayerCardSkeleton compact={compact} />
+                <PlayerCardSkeleton compact={compact} horizontal={horizontal} />
               </Grid>
             ))
           : visiblePlayers.map((player) => (
@@ -115,6 +137,7 @@ export function PlayerGrid({
                   selectedActionLabel={selectedActionLabel}
                   showAction={showAction}
                   compact={compact}
+                  horizontal={horizontal}
                 />
               </Grid>
             ))}

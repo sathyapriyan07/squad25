@@ -27,6 +27,7 @@ export interface PlayerCardProps {
   selectedActionLabel?: string;
   showAction?: boolean;
   compact?: boolean;
+  horizontal?: boolean;
 }
 
 function PlayerCard({
@@ -41,6 +42,7 @@ function PlayerCard({
   selectedActionLabel = 'Added to Squad',
   showAction = Boolean(onSelect || onRemove),
   compact = false,
+  horizontal = false,
 }: PlayerCardProps) {
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const imageUrl = player.imageUrl?.trim() || '';
@@ -77,7 +79,8 @@ function PlayerCard({
       sx={{
         height: '100%',
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: horizontal ? 'row' : 'column',
+        minHeight: horizontal ? (compact ? 145 : 160) : undefined,
         overflow: 'hidden',
         bgcolor: '#0B0D12',
         border: `1px solid ${selected ? accentColor : 'rgba(255,255,255,0.09)'}`,
@@ -101,7 +104,13 @@ function PlayerCard({
         sx={{
           position: 'relative',
           flexShrink: 0,
-          height: compact ? { xs: 125, sm: 140, md: 155 } : { xs: 175, sm: 200, md: 230 },
+          width: horizontal ? { xs: 112, sm: compact ? 120 : 140 } : '100%',
+          height: horizontal
+            ? 'auto'
+            : compact
+              ? { xs: 125, sm: 140, md: 155 }
+              : { xs: 175, sm: 200, md: 230 },
+          minHeight: horizontal ? (compact ? 145 : 160) : undefined,
           overflow: 'hidden',
           bgcolor: '#11151C',
         }}
@@ -118,9 +127,9 @@ function PlayerCard({
             sx={{
               display: 'block',
               width: '100%',
-              height: '100%',
+              height: horizontal ? '100%' : '100%',
               objectFit: 'cover',
-              objectPosition: 'center top',
+              objectPosition: horizontal ? 'center center' : 'center top',
               transform: 'scale(1)',
               transition: 'transform 420ms ease',
               filter: isUnavailable && !selected ? 'grayscale(0.35)' : 'none',
@@ -192,24 +201,26 @@ function PlayerCard({
           </Tooltip>
         )}
 
-        <Stack sx={{ position: 'absolute', right: 14, bottom: 12, left: 14 }} spacing={0.5}>
-          <Typography
-            variant={compact ? 'subtitle1' : 'h6'}
-            noWrap
-            sx={{
-              color: '#FFF',
-              fontWeight: 600,
-              fontSize: { xs: '0.84rem', sm: compact ? '0.88rem' : '1rem' },
-              lineHeight: 1.15,
-              textShadow: '0 1px 8px rgba(0,0,0,0.5)',
-            }}
-          >
-            {player.name}
-          </Typography>
-          <Typography variant="caption" noWrap sx={{ color: 'rgba(255,255,255,0.82)', fontSize: '0.58rem' }}>
-            {getCountryFlagEmoji(player.countryFlag || '')} {player.nationality || 'Nationality not listed'} · {roleLabel} · {originLabel}
-          </Typography>
-        </Stack>
+        {!horizontal && (
+          <Stack sx={{ position: 'absolute', right: 14, bottom: 12, left: 14 }} spacing={0.5}>
+            <Typography
+              variant={compact ? 'subtitle1' : 'h6'}
+              noWrap
+              sx={{
+                color: '#FFF',
+                fontWeight: 600,
+                fontSize: { xs: '0.84rem', sm: compact ? '0.88rem' : '1rem' },
+                lineHeight: 1.15,
+                textShadow: '0 1px 8px rgba(0,0,0,0.5)',
+              }}
+            >
+              {player.name}
+            </Typography>
+            <Typography variant="caption" noWrap sx={{ color: 'rgba(255,255,255,0.82)', fontSize: '0.58rem' }}>
+              {getCountryFlagEmoji(player.countryFlag || '')} {player.nationality || 'Nationality not listed'} · {roleLabel} · {originLabel}
+            </Typography>
+          </Stack>
+        )}
       </Box>
 
       <CardContent
@@ -217,11 +228,33 @@ function PlayerCard({
           p: compact ? 1.25 : 1.5,
           display: 'flex',
           flexDirection: 'column',
-          gap: compact ? 0.75 : 1,
+          gap: horizontal ? 0.75 : compact ? 0.75 : 1,
           flex: 1,
-          '&:last-child': { pb: compact ? 1.25 : 1.5 },
+          minWidth: 0,
+          '&:last-child': {
+            pb: horizontal ? 1.25 : compact ? 1.25 : 1.5,
+          },
         }}
       >
+        {horizontal && (
+          <Stack spacing={0.25}>
+            <Typography
+              variant={compact ? 'subtitle1' : 'h6'}
+              noWrap
+              sx={{
+                fontWeight: 600,
+                fontSize: { xs: '0.88rem', sm: compact ? '0.9rem' : '1rem' },
+                lineHeight: 1.2,
+              }}
+            >
+              {player.name}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: '0.65rem' }}>
+              {getCountryFlagEmoji(player.countryFlag || '')} {player.nationality || 'Nationality not listed'} · {roleLabel} · {originLabel}
+            </Typography>
+          </Stack>
+        )}
+
         <Stack spacing={0.75}>
           <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.62rem' }}>Batting</Typography>
