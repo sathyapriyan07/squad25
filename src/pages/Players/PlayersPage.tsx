@@ -209,8 +209,7 @@ export function PlayersPage() {
           onViewDetails={(player) => navigate(`/players/${player.id}`)}
           accentColor={accentColor}
           showAction={false}
-          horizontal
-          columns={{ xs: 1, md: 2 }}
+          columns={{ xs: 2, sm: 3, md: 4, lg: 5, xl: 5 }}
           page={page}
           pageSize={pageSize}
           onPageChange={setPage}

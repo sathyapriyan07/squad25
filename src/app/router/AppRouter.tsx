@@ -1,34 +1,40 @@
-import type { ReactNode } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { LoadingState, EmptyState } from '../../components/common/CommonUi';
 import { AppLayout } from '../../components/layout/AppLayout';
-import { HomePage } from '../../pages/Home/HomePage';
-import { SeasonsPage } from '../../pages/Seasons/SeasonsPage';
-import { FranchisesPage } from '../../pages/Franchises/FranchisesPage';
-import { PlayersPage } from '../../pages/Players/PlayersPage';
-import { PlayerDetailPage } from '../../pages/Players/PlayerDetailPage';
-import { SharedSquadPage } from '../../pages/SharedSquad/SharedSquadPage';
-import { LoginPage } from '../../pages/Auth/LoginPage';
-import { RegisterPage } from '../../pages/Auth/RegisterPage';
-import { DashboardPage } from '../../pages/Dashboard/DashboardPage';
-import { SquadBuilderPage } from '../../pages/SquadBuilder/SquadBuilderPage';
-import { PlayingXIBuilderPage } from '../../pages/PlayingXI/PlayingXIBuilderPage';
-import { ComparisonPage } from '../../pages/Comparison/ComparisonPage';
-import { AnalyticsPage } from '../../pages/Analytics/AnalyticsPage';
-import { SavedSquadsPage } from '../../pages/SavedSquads/SavedSquadsPage';
-import { ProfilePage } from '../../pages/Profile/ProfilePage';
-import { SettingsPage } from '../../pages/Settings/SettingsPage';
-import { AdminDashboardPage } from '../../pages/admin/AdminDashboardPage';
-import { SeasonsManagementPage } from '../../pages/admin/SeasonsManagementPage';
-import { TeamsManagementPage } from '../../pages/admin/TeamsManagementPage';
-import { PlayersManagementPage } from '../../pages/admin/PlayersManagementPage';
-import { StatisticsManagementPage } from '../../pages/admin/StatisticsManagementPage';
-import { RatingsManagementPage } from '../../pages/admin/RatingsManagementPage';
-import { EligibilityManagementPage } from '../../pages/admin/EligibilityManagementPage';
-import { RulesManagementPage } from '../../pages/admin/RulesManagementPage';
-import { ImportsManagementPage } from '../../pages/admin/ImportsManagementPage';
-import { AdminSquadsPage, AdminUsersPage } from '../../pages/admin/AdminSquadsAndUsersPage';
+
+const HomePage = lazy(() => import('../../pages/Home/HomePage').then((module) => ({ default: module.HomePage })));
+const SeasonsPage = lazy(() => import('../../pages/Seasons/SeasonsPage').then((module) => ({ default: module.SeasonsPage })));
+const FranchisesPage = lazy(() => import('../../pages/Franchises/FranchisesPage').then((module) => ({ default: module.FranchisesPage })));
+const PlayersPage = lazy(() => import('../../pages/Players/PlayersPage').then((module) => ({ default: module.PlayersPage })));
+const PlayerDetailPage = lazy(() => import('../../pages/Players/PlayerDetailPage').then((module) => ({ default: module.PlayerDetailPage })));
+const SharedSquadPage = lazy(() => import('../../pages/SharedSquad/SharedSquadPage').then((module) => ({ default: module.SharedSquadPage })));
+const LoginPage = lazy(() => import('../../pages/Auth/LoginPage').then((module) => ({ default: module.LoginPage })));
+const RegisterPage = lazy(() => import('../../pages/Auth/RegisterPage').then((module) => ({ default: module.RegisterPage })));
+const DashboardPage = lazy(() => import('../../pages/Dashboard/DashboardPage').then((module) => ({ default: module.DashboardPage })));
+const SquadBuilderPage = lazy(() => import('../../pages/SquadBuilder/SquadBuilderPage').then((module) => ({ default: module.SquadBuilderPage })));
+const PlayingXIBuilderPage = lazy(() => import('../../pages/PlayingXI/PlayingXIBuilderPage').then((module) => ({ default: module.PlayingXIBuilderPage })));
+const ComparisonPage = lazy(() => import('../../pages/Comparison/ComparisonPage').then((module) => ({ default: module.ComparisonPage })));
+const AnalyticsPage = lazy(() => import('../../pages/Analytics/AnalyticsPage').then((module) => ({ default: module.AnalyticsPage })));
+const SavedSquadsPage = lazy(() => import('../../pages/SavedSquads/SavedSquadsPage').then((module) => ({ default: module.SavedSquadsPage })));
+const ProfilePage = lazy(() => import('../../pages/Profile/ProfilePage').then((module) => ({ default: module.ProfilePage })));
+const SettingsPage = lazy(() => import('../../pages/Settings/SettingsPage').then((module) => ({ default: module.SettingsPage })));
+const AdminDashboardPage = lazy(() => import('../../pages/admin/AdminDashboardPage').then((module) => ({ default: module.AdminDashboardPage })));
+const SeasonsManagementPage = lazy(() => import('../../pages/admin/SeasonsManagementPage').then((module) => ({ default: module.SeasonsManagementPage })));
+const TeamsManagementPage = lazy(() => import('../../pages/admin/TeamsManagementPage').then((module) => ({ default: module.TeamsManagementPage })));
+const PlayersManagementPage = lazy(() => import('../../pages/admin/PlayersManagementPage').then((module) => ({ default: module.PlayersManagementPage })));
+const StatisticsManagementPage = lazy(() => import('../../pages/admin/StatisticsManagementPage').then((module) => ({ default: module.StatisticsManagementPage })));
+const RatingsManagementPage = lazy(() => import('../../pages/admin/RatingsManagementPage').then((module) => ({ default: module.RatingsManagementPage })));
+const EligibilityManagementPage = lazy(() => import('../../pages/admin/EligibilityManagementPage').then((module) => ({ default: module.EligibilityManagementPage })));
+const RulesManagementPage = lazy(() => import('../../pages/admin/RulesManagementPage').then((module) => ({ default: module.RulesManagementPage })));
+const ImportsManagementPage = lazy(() => import('../../pages/admin/ImportsManagementPage').then((module) => ({ default: module.ImportsManagementPage })));
+const AdminSquadsPage = lazy(() =>
+  import('../../pages/admin/AdminSquadsAndUsersPage').then((module) => ({ default: module.AdminSquadsPage }))
+);
+const AdminUsersPage = lazy(() =>
+  import('../../pages/admin/AdminSquadsAndUsersPage').then((module) => ({ default: module.AdminUsersPage }))
+);
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, initialized } = useAuthStore();
@@ -57,7 +63,8 @@ function RequireAdmin({ children }: { children: ReactNode }) {
 export function AppRouter() {
   return (
     <AppLayout>
-      <Routes>
+      <Suspense fallback={<LoadingState count={3} />}>
+        <Routes>
         {/* Public Routes */}
         <Route path="/" element={<HomePage />} />
         <Route path="/seasons" element={<SeasonsPage />} />
@@ -93,7 +100,8 @@ export function AppRouter() {
         <Route path="/admin/users" element={<RequireAdmin><AdminUsersPage /></RequireAdmin>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+        </Routes>
+      </Suspense>
     </AppLayout>
   );
 }

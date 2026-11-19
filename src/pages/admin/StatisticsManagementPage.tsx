@@ -85,7 +85,7 @@ export function StatisticsManagementPage() {
   const handleSave = async () => {
     if (!editing) return;
     await upsertPlayerStatistics(editing);
-    await qc.invalidateQueries({ queryKey: ['catalog'] });
+    void qc.invalidateQueries({ queryKey: ['catalog'] });
     setEditing(null);
     showSnackbar('Player statistics saved!', 'success');
   };

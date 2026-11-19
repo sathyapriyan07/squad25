@@ -59,7 +59,7 @@ export function RatingsManagementPage() {
   const handleSave = async () => {
     if (!editing) return;
     await upsertPlayerRatings(editing);
-    await qc.invalidateQueries({ queryKey: ['catalog'] });
+    void qc.invalidateQueries({ queryKey: ['catalog'] });
     setEditing(null);
     showSnackbar('Player ratings updated!', 'success');
   };

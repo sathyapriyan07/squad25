@@ -10,7 +10,8 @@ export function useCatalog(overrideSeasonId?: string) {
   const query = useQuery({
     queryKey: ['catalog'],
     queryFn: fetchCatalogBundle,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 15,
+    gcTime: 1000 * 60 * 30,
   });
 
   const catalog = query.data;

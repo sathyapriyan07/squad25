@@ -72,7 +72,7 @@ export function EligibilityManagementPage() {
       actualSquadStatus: patch.actualSquadStatus ?? current?.actualSquadStatus ?? 'Active',
       isOverseasSnapshot: patch.isOverseas ?? current?.isOverseasSnapshot ?? player.isOverseas,
     });
-    await qc.invalidateQueries({ queryKey: ['catalog'] });
+    void qc.invalidateQueries({ queryKey: ['catalog'] });
     showSnackbar('Season eligibility updated', 'success');
   };
 

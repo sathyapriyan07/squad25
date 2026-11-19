@@ -105,7 +105,7 @@ export function TeamsManagementPage() {
           cleanupWarning = `Previous logo could not be deleted: ${getErrorMessage(error)}`;
         }
       }
-      await qc.invalidateQueries({ queryKey: ['catalog'] });
+      void qc.invalidateQueries({ queryKey: ['catalog'] });
       setOpen(false);
       setLogoFile(null);
       showSnackbar(
@@ -129,7 +129,7 @@ export function TeamsManagementPage() {
 
   const handleDelete = async (id: string) => {
     await deleteTeam(id);
-    await qc.invalidateQueries({ queryKey: ['catalog'] });
+    void qc.invalidateQueries({ queryKey: ['catalog'] });
     showSnackbar('Franchise deleted', 'info');
   };
 
@@ -148,7 +148,7 @@ export function TeamsManagementPage() {
 
       try {
         await upsertTeam({ ...team, logoUrl: '' });
-        await qc.invalidateQueries({ queryKey: ['catalog'] });
+        void qc.invalidateQueries({ queryKey: ['catalog'] });
       } catch (error) {
         throw new Error(`Logo deleted from storage, but the franchise record could not be updated: ${getErrorMessage(error)}`);
       }

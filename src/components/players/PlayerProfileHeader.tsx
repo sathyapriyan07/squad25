@@ -10,7 +10,6 @@ interface PlayerProfileHeaderProps {
   accentColor: string;
   activeSeasonName: string;
   careerMatches?: number;
-  seasonsPlayed: number;
   overallRating?: number;
   actions: ReactNode;
 }
@@ -21,7 +20,6 @@ export function PlayerProfileHeader({
   accentColor,
   activeSeasonName,
   careerMatches,
-  seasonsPlayed,
   overallRating,
   actions,
 }: PlayerProfileHeaderProps) {
@@ -47,14 +45,16 @@ export function PlayerProfileHeader({
         overflow: 'hidden',
         borderColor: `${accentColor}55`,
         backgroundColor: '#10141C',
+        borderRadius: '18px',
+        boxShadow: '0 18px 44px rgba(0,0,0,0.28)',
       }}
     >
-      <Grid container>
-        <Grid size={{ xs: 12, md: 3.2 }}>
+      <Grid container sx={{ minHeight: { md: 290 } }}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Box
             sx={{
               position: 'relative',
-              height: { xs: 220, sm: 270, md: '100%' },
+              height: { xs: 240, sm: 280, md: '100%' },
               minHeight: { md: 290 },
               overflow: 'hidden',
               bgcolor: '#0A0D12',
@@ -73,7 +73,7 @@ export function PlayerProfileHeader({
                   width: '100%',
                   height: '100%',
                   objectFit: 'cover',
-                  objectPosition: 'center top',
+                  objectPosition: 'center 18%',
                 }}
               />
             ) : (
@@ -98,43 +98,46 @@ export function PlayerProfileHeader({
                 position: 'absolute',
                 inset: 0,
                 background: {
-                  xs: 'linear-gradient(180deg, transparent 38%, rgba(5,7,10,0.86) 100%)',
-                  md: `linear-gradient(180deg, transparent 40%, ${accentColor}33 100%)`,
+                  xs: 'linear-gradient(180deg, transparent 38%, rgba(5,7,10,0.92) 100%)',
+                  md: 'linear-gradient(90deg, transparent 58%, #10141C 100%), linear-gradient(180deg, transparent 48%, rgba(5,7,10,0.72) 100%)',
                 },
                 pointerEvents: 'none',
               }}
             />
-            <Typography
-              variant="caption"
+            <Stack
+              spacing={0.35}
               sx={{
                 position: 'absolute',
-                left: 16,
-                bottom: 14,
+                left: 18,
+                bottom: 16,
                 color: '#FFF',
-                fontWeight: 600,
-                textShadow: '0 1px 5px rgba(0,0,0,0.8)',
-                display: { xs: 'block', md: 'none' },
+                textShadow: '0 2px 10px rgba(0,0,0,0.82)',
               }}
             >
-              {getCountryFlagEmoji(player.countryFlag || '')} {player.nationality}
-            </Typography>
+              <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: '0.02em' }}>
+                {getCountryFlagEmoji(player.countryFlag || '')} {player.nationality || 'Nationality not recorded'}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.78)' }}>
+                {player.isCapped ? 'Capped player' : 'Uncapped player'}
+              </Typography>
+            </Stack>
           </Box>
         </Grid>
-        <Grid size={{ xs: 12, md: 8.8 }}>
-          <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 }, height: '100%' }}>
+        <Grid size={{ xs: 12, md: 8 }}>
+          <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 }, height: '100%', boxSizing: 'border-box' }}>
             <Stack spacing={2} sx={{ height: '100%' }}>
               <Box>
-                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
                   <Typography
                     variant="h3"
-                    sx={{ fontSize: { xs: '1.65rem', sm: '2rem', md: '2.25rem' }, lineHeight: 1.1 }}
+                    sx={{ fontSize: { xs: '1.65rem', sm: '2rem', md: '2.35rem' }, lineHeight: 1.05, fontWeight: 750 }}
                   >
                     {player.name}
                   </Typography>
                   {overallRating !== undefined && (
-                    <Box sx={{ flexShrink: 0, textAlign: 'right' }}>
-                      <Typography variant="caption" color="text.secondary">OVR</Typography>
-                      <Typography className="tabular-nums" sx={{ color: accentColor, fontSize: '1.25rem', fontWeight: 700, lineHeight: 1 }}>
+                    <Box sx={{ flexShrink: 0, minWidth: 54, textAlign: 'right' }}>
+                      <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.58)', display: 'block' }}>OVR</Typography>
+                      <Typography className="tabular-nums" sx={{ color: accentColor, fontSize: '1.75rem', fontWeight: 800, lineHeight: 1 }}>
                         {overallRating}
                       </Typography>
                     </Box>
@@ -169,7 +172,7 @@ export function PlayerProfileHeader({
                 <Grid size={{ xs: 6, sm: 4 }}>
                   <Typography variant="caption" color="text.secondary">IPL career</Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    {careerMatches === undefined ? 'Matches not recorded' : `${careerMatches} matches · ${seasonsPlayed} seasons`}
+                    {careerMatches === undefined ? 'Matches not recorded' : `${careerMatches} matches`}
                   </Typography>
                 </Grid>
               </Grid>

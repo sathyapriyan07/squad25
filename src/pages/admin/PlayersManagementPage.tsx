@@ -312,7 +312,7 @@ export function PlayersManagementPage() {
 
   const handleDelete = async (id: string) => {
     await deletePlayer(id);
-    await qc.invalidateQueries({ queryKey: ['catalog'] });
+    void qc.invalidateQueries({ queryKey: ['catalog'] });
     showSnackbar('Player removed', 'info');
   };
 

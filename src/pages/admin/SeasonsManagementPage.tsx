@@ -135,7 +135,7 @@ export function SeasonsManagementPage() {
         },
         selectedTeams.map((t) => t.id)
       );
-      await qc.invalidateQueries({ queryKey: ['catalog'] });
+      void qc.invalidateQueries({ queryKey: ['catalog'] });
       setOpen(false);
       showSnackbar(`Saved season ${form.name}`, 'success');
     } catch (error) {
@@ -147,7 +147,7 @@ export function SeasonsManagementPage() {
 
   const handleDelete = async (id: string) => {
     await deleteSeason(id);
-    await qc.invalidateQueries({ queryKey: ['catalog'] });
+    void qc.invalidateQueries({ queryKey: ['catalog'] });
     showSnackbar('Season deleted', 'info');
   };
 

@@ -75,7 +75,7 @@ export function AdminUsersPage() {
 
   const toggleAdmin = async (uid: string, makeAdmin: boolean) => {
     await setUserAdminRole(uid, makeAdmin);
-    await qc.invalidateQueries({ queryKey: ['admin_users'] });
+    void qc.invalidateQueries({ queryKey: ['admin_users'] });
     showSnackbar(`Updated user role to ${makeAdmin ? 'admin' : 'user'}`, 'success');
   };
 

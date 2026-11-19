@@ -73,7 +73,7 @@ export function RulesManagementPage() {
 
   const handleSave = async () => {
     await upsertSeasonRule(ruleForm);
-    await qc.invalidateQueries({ queryKey: ['catalog'] });
+    void qc.invalidateQueries({ queryKey: ['catalog'] });
     showSnackbar('Season squad rules saved!', 'success');
   };
 

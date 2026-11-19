@@ -163,35 +163,46 @@ function hasFieldingData(stats?: PlayerStatistics): boolean {
     .some((value) => Number.isFinite(value) && value > 0);
 }
 
-function PlayerStatCard({
-  label,
-  value,
-  caption,
-  accentColor,
-}: Metric & { accentColor: string }) {
+function PlayerStatList({ metrics, accentColor }: { metrics: Metric[]; accentColor: string }) {
   return (
-    <Card
+    <Stack
+      divider={<Divider />}
       sx={{
-        height: '100%',
-        bgcolor: 'rgba(255,255,255,0.025)',
+        border: '1px solid rgba(255,255,255,0.08)',
         borderLeft: `2px solid ${accentColor}99`,
         borderRadius: '12px',
+        overflow: 'hidden',
       }}
     >
-      <CardContent sx={{ p: 1.75, '&:last-child': { pb: 1.75 } }}>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-          {label}
-        </Typography>
-        <Typography variant="h5" className="tabular-nums" sx={{ mt: 0.4, fontWeight: 600, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
-          {formatStat(value)}
-        </Typography>
-        {caption && (
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
-            {caption}
+      {metrics.map((metric) => (
+        <Stack
+          key={metric.label}
+          direction="row"
+          spacing={2}
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            px: { xs: 1.5, sm: 2 },
+            py: 1.25,
+            bgcolor: 'rgba(255,255,255,0.018)',
+          }}
+        >
+          <Box sx={{ minWidth: 0 }}>
+            <Typography variant="body2" color="text.secondary">
+              {metric.label}
+            </Typography>
+            {metric.caption && (
+              <Typography variant="caption" color="text.secondary">
+                {metric.caption}
+              </Typography>
+            )}
+          </Box>
+          <Typography className="tabular-nums" variant="body1" sx={{ fontWeight: 700, textAlign: 'right' }}>
+            {formatStat(metric.value)}
           </Typography>
-        )}
-      </CardContent>
-    </Card>
+        </Stack>
+      ))}
+    </Stack>
   );
 }
 
@@ -408,7 +419,6 @@ export function PlayerDetailPage() {
   const hasAnyBatting = hasCareerBatting || battingRows.length > 0;
   const hasAnyBowling = hasCareerBowling || bowlingRows.length > 0;
   const hasAnyFielding = hasFieldingData(careerStats) || fieldingRows.length > 0;
-  const seasonsPlayed = seasonRecords.filter((record) => (record.stats?.matches ?? 0) > 0).length;
 
   const franchiseHistory = useMemo(() => {
     const byTeam = new Map<string, { team: Team; seasons: string[] }>();
@@ -513,7 +523,6 @@ export function PlayerDetailPage() {
 
   const careerMetrics: Metric[] = [
     { label: 'IPL matches', value: careerStats ? careerStats.matches : '—' },
-    { label: 'Seasons played', value: seasonsPlayed },
     { label: 'Teams represented', value: franchiseHistory.length },
   ];
 
@@ -555,13 +564,7 @@ export function PlayerDetailPage() {
         <Stack spacing={2.5}>
           <Box>
             <Typography variant="subtitle1" sx={{ mb: 1.25, fontWeight: 600 }}>IPL summary</Typography>
-            <Grid container spacing={1.5}>
-              {careerMetrics.map((metric) => (
-                <Grid key={metric.label} size={{ xs: 6, sm: 4, lg: 3 }}>
-                  <PlayerStatCard {...metric} accentColor={accentColor} />
-                </Grid>
-              ))}
-            </Grid>
+            <PlayerStatList metrics={careerMetrics} accentColor={accentColor} />
           </Box>
 
           <Grid container spacing={2}>
@@ -627,8 +630,9 @@ export function PlayerDetailPage() {
             <Box>
               <Typography variant="subtitle1" sx={{ mb: 1.25, fontWeight: 600 }}>Career batting statistics</Typography>
               {hasCareerBatting && careerStats ? (
-                <Grid container spacing={1.5}>
-                  {[
+                <PlayerStatList
+                  accentColor={accentColor}
+                  metrics={[
                     { label: 'Matches', value: careerStats.matches },
                     { label: 'Innings', value: careerStats.inningsBat },
                     { label: 'Runs', value: careerStats.runs },
@@ -639,12 +643,8 @@ export function PlayerDetailPage() {
                     { label: 'Fifties', value: careerStats.halfCenturies },
                     { label: 'Fours', value: careerStats.fours },
                     { label: 'Sixes', value: careerStats.sixes },
-                  ].map((metric) => (
-                    <Grid key={metric.label} size={{ xs: 6, sm: 4, lg: 3 }}>
-                      <PlayerStatCard {...metric} accentColor={accentColor} />
-                    </Grid>
-                  ))}
-                </Grid>
+                  ]}
+                />
               ) : (
                 <Alert severity="info">Career batting aggregates are not recorded; available season records are shown below.</Alert>
               )}
@@ -711,8 +711,9 @@ export function PlayerDetailPage() {
             <Box>
               <Typography variant="subtitle1" sx={{ mb: 1.25, fontWeight: 600 }}>Career bowling statistics</Typography>
               {hasCareerBowling && careerStats ? (
-                <Grid container spacing={1.5}>
-                  {[
+                <PlayerStatList
+                  accentColor={accentColor}
+                  metrics={[
                     { label: 'Matches', value: careerStats.matches },
                     { label: 'Innings', value: careerStats.inningsBowl },
                     { label: 'Overs', value: careerStats.overs },
@@ -723,12 +724,8 @@ export function PlayerDetailPage() {
                     { label: 'Economy rate', value: careerStats.economy },
                     { label: 'Bowling strike rate', value: careerStats.bowlingStrikeRate },
                     { label: 'Five-wicket hauls', value: careerStats.fiveWicketHauls },
-                  ].map((metric) => (
-                    <Grid key={metric.label} size={{ xs: 6, sm: 4, lg: 3 }}>
-                      <PlayerStatCard {...metric} accentColor={accentColor} />
-                    </Grid>
-                  ))}
-                </Grid>
+                  ]}
+                />
               ) : (
                 <Alert severity="info">Career bowling aggregates are not recorded; available season records are shown below.</Alert>
               )}
@@ -795,26 +792,20 @@ export function PlayerDetailPage() {
             <Box>
               <Typography variant="subtitle1" sx={{ mb: 1.25, fontWeight: 600 }}>Career fielding statistics</Typography>
               {hasFieldingData(careerStats) && careerStats ? (
-                <Grid container spacing={1.5}>
-                  <Grid size={{ xs: 6, sm: 3 }}>
-                    <PlayerStatCard label="Catches" value={careerStats.catches} accentColor={accentColor} />
-                  </Grid>
-                  <Grid size={{ xs: 6, sm: 3 }}>
-                    <PlayerStatCard label="Run outs" value={careerStats.runOuts} accentColor={accentColor} />
-                  </Grid>
-                  {(player.isWicketkeeper || player.primaryRole === 'WK') && (
-                    <Grid size={{ xs: 6, sm: 3 }}>
-                      <PlayerStatCard label="Stumpings" value={careerStats.stumpings} accentColor={accentColor} />
-                    </Grid>
-                  )}
-                  <Grid size={{ xs: 6, sm: 3 }}>
-                    <PlayerStatCard
-                      label="Total dismissals"
-                      value={careerStats.catches + careerStats.runOuts + careerStats.stumpings}
-                      accentColor={accentColor}
-                    />
-                  </Grid>
-                </Grid>
+                <PlayerStatList
+                  accentColor={accentColor}
+                  metrics={[
+                    { label: 'Catches', value: careerStats.catches },
+                    { label: 'Run outs', value: careerStats.runOuts },
+                    ...((player.isWicketkeeper || player.primaryRole === 'WK')
+                      ? [{ label: 'Stumpings', value: careerStats.stumpings }]
+                      : []),
+                    {
+                      label: 'Total dismissals',
+                      value: careerStats.catches + careerStats.runOuts + careerStats.stumpings,
+                    },
+                  ]}
+                />
               ) : (
                 <Alert severity="info">Career fielding totals are not recorded; season-wise records are shown below.</Alert>
               )}
@@ -845,25 +836,18 @@ export function PlayerDetailPage() {
 
       {tab === 'career' && (
         <Stack spacing={2.5}>
-          <Grid container spacing={1.5}>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <PlayerStatCard label="IPL debut" value={debutRecord?.season?.name || '—'} accentColor={accentColor} />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <PlayerStatCard label="Seasons played" value={seasonsPlayed} accentColor={accentColor} />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <PlayerStatCard label="Franchises represented" value={franchiseHistory.length} accentColor={accentColor} />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <PlayerStatCard
-                label="Best run season"
-                value={bestRunSeason?.season?.name || '—'}
-                caption={bestRunSeason ? `${formatStat(bestRunSeason.stats?.runs)} runs` : undefined}
-                accentColor={accentColor}
-              />
-            </Grid>
-          </Grid>
+          <PlayerStatList
+            accentColor={accentColor}
+            metrics={[
+              { label: 'IPL debut', value: debutRecord?.season?.name || '—' },
+              { label: 'Franchises represented', value: franchiseHistory.length },
+              {
+                label: 'Best run season',
+                value: bestRunSeason?.season?.name || '—',
+                caption: bestRunSeason ? `${formatStat(bestRunSeason.stats?.runs)} runs` : undefined,
+              },
+            ]}
+          />
 
           <Box>
             <Typography variant="subtitle1" sx={{ mb: 1.25, fontWeight: 600 }}>Franchise history</Typography>
@@ -873,27 +857,26 @@ export function PlayerDetailPage() {
                 description="Season-to-franchise records have not been added for this player."
               />
             ) : (
-              <Grid container spacing={1.5}>
+              <Stack divider={<Divider />} sx={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', overflow: 'hidden' }}>
                 {franchiseHistory.map(({ team, seasons }) => (
-                  <Grid key={team.id} size={{ xs: 12, sm: 6, lg: 4 }}>
-                    <Card sx={{ height: '100%', bgcolor: 'rgba(255,255,255,0.025)', borderTop: `2px solid ${team.primaryColor}` }}>
-                      <CardContent>
-                        <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
-                          <TeamLogo team={team} size={38} />
-                          <Box sx={{ minWidth: 0 }}>
-                            <Typography variant="subtitle2" noWrap sx={{ fontWeight: 600 }}>
-                              {team.shortCode} · {team.name}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {seasons.join(' · ')}
-                            </Typography>
-                          </Box>
-                        </Stack>
-                      </CardContent>
-                    </Card>
-                  </Grid>
+                  <Stack
+                    key={team.id}
+                    direction="row"
+                    spacing={1.25}
+                    sx={{ alignItems: 'center', px: 1.5, py: 1.25, bgcolor: 'rgba(255,255,255,0.018)' }}
+                  >
+                    <TeamLogo team={team} size={38} />
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography variant="subtitle2" noWrap sx={{ fontWeight: 600 }}>
+                        {team.shortCode} · {team.name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {seasons.join(' · ')}
+                      </Typography>
+                    </Box>
+                  </Stack>
                 ))}
-              </Grid>
+              </Stack>
             )}
           </Box>
 
@@ -902,48 +885,55 @@ export function PlayerDetailPage() {
             {playedSeasonRecords.length === 0 ? (
               <Typography variant="body2" color="text.secondary">No season-level appearances are recorded.</Typography>
             ) : (
-              <Grid container spacing={1.25}>
+              <Stack divider={<Divider />} sx={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', overflow: 'hidden' }}>
                 {playedSeasonRecords.map((record) => (
-                  <Grid key={record.seasonId} size={{ xs: 6, sm: 4, md: 3 }}>
-                    <Card sx={{ height: '100%', bgcolor: 'rgba(255,255,255,0.02)' }}>
-                      <CardContent sx={{ p: 1.5 }}>
-                        <Typography variant="caption" color="text.secondary">
-                          {record.season?.name || record.seasonId}
-                        </Typography>
-                        <Typography variant="subtitle2" noWrap sx={{ mt: 0.35, fontWeight: 600 }}>
-                          {record.team?.shortCode || 'Franchise not recorded'}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {formatStat(record.stats?.matches)} matches
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
+                  <Stack
+                    key={record.seasonId}
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={1}
+                    sx={{
+                      alignItems: { sm: 'center' },
+                      justifyContent: 'space-between',
+                      px: 1.5,
+                      py: 1.25,
+                      bgcolor: 'rgba(255,255,255,0.018)',
+                    }}
+                  >
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                        {record.season?.name || record.seasonId}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {record.team?.shortCode || 'Franchise not recorded'}
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {formatStat(record.stats?.matches)} matches
+                    </Typography>
+                  </Stack>
                 ))}
-              </Grid>
+              </Stack>
             )}
           </Box>
 
-          <Grid container spacing={1.5}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <PlayerStatCard
-                label="Best wicket season"
-                value={bestWicketSeason?.season?.name || '—'}
-                caption={bestWicketSeason ? `${formatStat(bestWicketSeason.stats?.wickets)} wickets` : undefined}
-                accentColor={accentColor}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Card sx={{ height: '100%', bgcolor: 'rgba(255,255,255,0.02)' }}>
-                <CardContent sx={{ p: 1.75 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Awards and achievements</Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                    Award and achievement records are not included in the current catalog.
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
+          <PlayerStatList
+            accentColor={accentColor}
+            metrics={[
+              {
+                label: 'Best wicket season',
+                value: bestWicketSeason?.season?.name || '—',
+                caption: bestWicketSeason ? `${formatStat(bestWicketSeason.stats?.wickets)} wickets` : undefined,
+              },
+            ]}
+          />
+          <Card sx={{ bgcolor: 'rgba(255,255,255,0.02)' }}>
+            <CardContent sx={{ p: 1.75 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Awards and achievements</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                Award and achievement records are not included in the current catalog.
+              </Typography>
+            </CardContent>
+          </Card>
         </Stack>
       )}
 
@@ -985,39 +975,28 @@ export function PlayerDetailPage() {
                   </Typography>
                 </Stack>
                 {selectedStatsSeason.stats ? (
-                  <Grid container spacing={1.25}>
-                    <Grid size={{ xs: 6, sm: 4, lg: 2 }}>
-                      <PlayerStatCard label="Matches" value={selectedStatsSeason.stats.matches} accentColor={accentColor} />
-                    </Grid>
-                    {hasBattingData(selectedStatsSeason.stats) && (
-                      <>
-                        <Grid size={{ xs: 6, sm: 4, lg: 2 }}>
-                          <PlayerStatCard label="Runs" value={selectedStatsSeason.stats.runs} accentColor={accentColor} />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 4, lg: 2 }}>
-                          <PlayerStatCard label="Batting average" value={selectedStatsSeason.stats.battingAverage} accentColor={accentColor} />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 4, lg: 2 }}>
-                          <PlayerStatCard label="Strike rate" value={selectedStatsSeason.stats.strikeRate} accentColor={accentColor} />
-                        </Grid>
-                      </>
-                    )}
-                    {hasBowlingData(selectedStatsSeason.stats) && (
-                      <>
-                        <Grid size={{ xs: 6, sm: 4, lg: 2 }}>
-                          <PlayerStatCard label="Wickets" value={selectedStatsSeason.stats.wickets} accentColor={accentColor} />
-                        </Grid>
-                        <Grid size={{ xs: 6, sm: 4, lg: 2 }}>
-                          <PlayerStatCard label="Economy" value={selectedStatsSeason.stats.economy} accentColor={accentColor} />
-                        </Grid>
-                      </>
-                    )}
-                    {hasFieldingData(selectedStatsSeason.stats) && (
-                      <Grid size={{ xs: 6, sm: 4, lg: 2 }}>
-                        <PlayerStatCard label="Catches" value={selectedStatsSeason.stats.catches} accentColor={accentColor} />
-                      </Grid>
-                    )}
-                  </Grid>
+                  <PlayerStatList
+                    accentColor={accentColor}
+                    metrics={[
+                      { label: 'Matches', value: selectedStatsSeason.stats.matches },
+                      ...(hasBattingData(selectedStatsSeason.stats)
+                        ? [
+                            { label: 'Runs', value: selectedStatsSeason.stats.runs },
+                            { label: 'Batting average', value: selectedStatsSeason.stats.battingAverage },
+                            { label: 'Strike rate', value: selectedStatsSeason.stats.strikeRate },
+                          ]
+                        : []),
+                      ...(hasBowlingData(selectedStatsSeason.stats)
+                        ? [
+                            { label: 'Wickets', value: selectedStatsSeason.stats.wickets },
+                            { label: 'Economy', value: selectedStatsSeason.stats.economy },
+                          ]
+                        : []),
+                      ...(hasFieldingData(selectedStatsSeason.stats)
+                        ? [{ label: 'Catches', value: selectedStatsSeason.stats.catches }]
+                        : []),
+                    ]}
+                  />
                 ) : (
                   <Alert severity="info">No season performance statistics are recorded for this season.</Alert>
                 )}
@@ -1099,7 +1078,6 @@ export function PlayerDetailPage() {
         accentColor={accentColor}
         activeSeasonName={activeSeason.name}
         careerMatches={careerStats?.matches}
-        seasonsPlayed={seasonsPlayed}
         overallRating={hasRatings ? player.ratings.overall : undefined}
         actions={addToSquadAction}
       />
@@ -1109,9 +1087,6 @@ export function PlayerDetailPage() {
           <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline', justifyContent: 'space-between', px: 0.75, pb: 0.75 }}>
             <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.1rem' }, fontWeight: 600 }}>
               IPL performance
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {seasonRecords.length} recorded seasons
             </Typography>
           </Stack>
           <Tabs
