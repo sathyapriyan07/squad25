@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
+  Box,
   Card,
   CardContent,
   Chip,
@@ -127,10 +128,10 @@ export function PlayersPage() {
       />
 
       {/* Filter Bar */}
-      <Card>
-        <CardContent sx={{ p: 2 }}>
-          <Stack spacing={2}>
-            <Grid container spacing={2} sx={{ alignItems: 'center' }}>
+      <Card sx={{ bgcolor: '#090B10', border: 'none', borderRadius: 0, boxShadow: 'none' }}>
+        <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
+          <Stack spacing={1.5}>
+            <Grid container spacing={1.5} sx={{ alignItems: 'center' }}>
               <Grid size={{ xs: 12, md: 5 }}>
                 <SearchInput
                   value={search}
@@ -172,7 +173,7 @@ export function PlayersPage() {
               </Grid>
             </Grid>
 
-            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 0.75 }}>
               {(
                 [
                   ['ALL', 'All Players'],
@@ -190,15 +191,23 @@ export function PlayersPage() {
                   key={key}
                   label={label}
                   clickable
+                  size="small"
                   color={filter === key ? 'primary' : 'default'}
                   variant={filter === key ? 'filled' : 'outlined'}
+                  sx={{
+                    width: '100%',
+                    height: 28,
+                    justifyContent: 'center',
+                    fontSize: '0.75rem',
+                    '& .MuiChip-label': { px: 1 },
+                  }}
                   onClick={() => {
                     setFilter(key);
                     setPage(1);
                   }}
                 />
               ))}
-            </Stack>
+            </Box>
           </Stack>
         </CardContent>
       </Card>

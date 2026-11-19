@@ -95,10 +95,9 @@ function PlayerCard({
         '&:hover .player-card-image': {
           transform: 'scale(1.045)',
         },
-        '&:focus-within': {
-          outline: `2px solid ${accentColor}`,
-          outlineOffset: 2,
-        },
+        '&:focus-within': isDirectoryCard
+          ? { outline: 'none' }
+          : { outline: `2px solid ${accentColor}`, outlineOffset: 2 },
       }}
     >
       <Box
