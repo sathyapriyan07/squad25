@@ -139,58 +139,61 @@ export function PlayerProfileHeader({
                     {remainingName && <Box component="span" sx={{ display: 'block' }}>{remainingName}</Box>}
                   </Typography>
                 </Box>
-                <Stack direction="row" spacing={1.25} useFlexGap sx={{ mt: { xs: 2, sm: 2.5 }, alignItems: 'center', flexWrap: 'wrap' }}>
+                <Stack spacing={0.75} sx={{ mt: { xs: 2, sm: 2.5 }, alignItems: 'center' }}>
                   <Typography variant="body2" sx={{ color: accentColor, fontWeight: 600 }}>
                     {roleLabel}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {getCountryFlagEmoji(player.countryFlag || '')} {player.nationality || 'Nationality not recorded'}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {player.isCapped ? 'Capped' : 'Uncapped'}
-                  </Typography>
+                  <Stack direction="row" spacing={1.25} useFlexGap sx={{ alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      {getCountryFlagEmoji(player.countryFlag || '')} {player.nationality || 'Nationality not recorded'}
+                    </Typography>
+                  </Stack>
                 </Stack>
               </Box>
 
-              <Grid container spacing={{ xs: 1.25, sm: 2 }}>
-                <Grid size={{ xs: 6, sm: 4 }}>
+              <Stack divider={<Box sx={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }} />}>
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between', py: 0.75 }}>
                   <Typography variant="caption" color="text.secondary">Batting style</Typography>
-                  <Typography variant="body2" noWrap sx={{ fontWeight: 500 }}>
+                  <Typography variant="body2" noWrap sx={{ fontWeight: 500, textAlign: 'right' }}>
                     {player.battingStyle?.trim() || '—'}
                   </Typography>
-                </Grid>
-                <Grid size={{ xs: 6, sm: 4 }}>
+                </Stack>
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between', py: 0.75 }}>
                   <Typography variant="caption" color="text.secondary">Bowling style</Typography>
-                  <Typography variant="body2" noWrap sx={{ fontWeight: 500 }}>
+                  <Typography variant="body2" noWrap sx={{ fontWeight: 500, textAlign: 'right' }}>
                     {player.bowlingStyle?.trim() || '—'}
                   </Typography>
-                </Grid>
-                <Grid size={{ xs: 6, sm: 4 }}>
+                </Stack>
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between', py: 0.75 }}>
                   <Typography variant="caption" color="text.secondary">IPL career</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500, textAlign: 'right' }}>
                     {careerMatches === undefined ? 'Matches not recorded' : `${careerMatches} matches`}
                   </Typography>
-                </Grid>
-              </Grid>
-
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 'auto', alignItems: { sm: 'center' } }}>
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flex: 1, minWidth: 0 }}>
+                </Stack>
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between', py: 0.75 }}>
+                  <Typography variant="caption" color="text.secondary">Status</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, textAlign: 'right' }}>
+                    {player.isCapped ? 'Capped' : 'Uncapped'}
+                  </Typography>
+                </Stack>
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between', py: 0.75 }}>
+                  <Typography variant="caption" color="text.secondary">Current franchise</Typography>
                   {team ? (
-                    <>
-                      <TeamLogo team={team} size={30} />
-                      <Box sx={{ minWidth: 0 }}>
-                        <Typography variant="caption" color="text.secondary">Current franchise</Typography>
-                        <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
-                          {team.shortCode} · {team.name}
-                        </Typography>
-                      </Box>
-                    </>
+                    <Stack direction="row" spacing={1} sx={{ minWidth: 0, alignItems: 'center' }}>
+                      <TeamLogo team={team} size={26} />
+                      <Typography variant="body2" noWrap sx={{ fontWeight: 500 }}>
+                        {team.shortCode} · {team.name}
+                      </Typography>
+                    </Stack>
                   ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      No franchise recorded for {activeSeasonName}
+                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'right' }}>
+                      Not recorded for {activeSeasonName}
                     </Typography>
                   )}
                 </Stack>
+              </Stack>
+
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 'auto', alignItems: { sm: 'center' } }}>
                 <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', justifyContent: { xs: 'stretch', sm: 'flex-end' } }}>
                   {actions}
                 </Stack>
