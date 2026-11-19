@@ -24,6 +24,7 @@ export interface PlayerGridProps {
   selectedActionLabel?: string;
   showAction?: boolean;
   compact?: boolean;
+  cardStyle?: 'standard' | 'directory';
   loading?: boolean;
   skeletonCount?: number;
   columns?: ResponsiveColumns;
@@ -34,19 +35,42 @@ export interface PlayerGridProps {
   emptyDescription?: string;
 }
 
-function PlayerCardSkeleton({ compact }: { compact: boolean }) {
+function PlayerCardSkeleton({
+  compact,
+  cardStyle,
+}: {
+  compact: boolean;
+  cardStyle: 'standard' | 'directory';
+}) {
+  const isDirectoryCard = cardStyle === 'directory';
+
   return (
-    <Card sx={{ height: '100%', overflow: 'hidden', borderRadius: '18px' }}>
+    <Card
+      sx={{
+        height: '100%',
+        overflow: 'hidden',
+        borderRadius: isDirectoryCard ? '10px' : '18px',
+        bgcolor: isDirectoryCard ? 'transparent' : undefined,
+        border: isDirectoryCard ? 'none' : undefined,
+      }}
+    >
       <Skeleton
         variant="rectangular"
-        height={compact ? 155 : 230}
+        height={isDirectoryCard ? 'auto' : compact ? 155 : 230}
         animation="wave"
-        sx={{ bgcolor: 'rgba(255,255,255,0.07)' }}
+        sx={{
+          aspectRatio: isDirectoryCard ? '4 / 3' : undefined,
+          bgcolor: 'rgba(255,255,255,0.07)',
+        }}
       />
-      <CardContent sx={{ p: 2 }}>
+      <CardContent sx={{ p: isDirectoryCard ? 0 : 2, pt: isDirectoryCard ? 1.1 : 2 }}>
         <Skeleton width="68%" sx={{ bgcolor: 'rgba(255,255,255,0.07)' }} />
-        <Skeleton width="88%" sx={{ bgcolor: 'rgba(255,255,255,0.07)' }} />
-        <Skeleton height={38} sx={{ mt: 1.5, bgcolor: 'rgba(255,255,255,0.07)' }} />
+        {!isDirectoryCard && (
+          <>
+            <Skeleton width="88%" sx={{ bgcolor: 'rgba(255,255,255,0.07)' }} />
+            <Skeleton height={38} sx={{ mt: 1.5, bgcolor: 'rgba(255,255,255,0.07)' }} />
+          </>
+        )}
       </CardContent>
     </Card>
   );
@@ -63,6 +87,7 @@ export function PlayerGrid({
   selectedActionLabel,
   showAction,
   compact = false,
+  cardStyle = 'standard',
   loading = false,
   skeletonCount = 8,
   columns = { xs: 2, sm: 3, md: 4, lg: 5 },
@@ -99,7 +124,7 @@ export function PlayerGrid({
         {loading
           ? Array.from({ length: Math.max(1, skeletonCount) }, (_, index) => (
               <Grid key={`player-skeleton-${index}`} size={gridSize}>
-                <PlayerCardSkeleton compact={compact} />
+                <PlayerCardSkeleton compact={compact} cardStyle={cardStyle} />
               </Grid>
             ))
           : visiblePlayers.map((player) => (
@@ -115,6 +140,7 @@ export function PlayerGrid({
                   selectedActionLabel={selectedActionLabel}
                   showAction={showAction}
                   compact={compact}
+                  cardStyle={cardStyle}
                 />
               </Grid>
             ))}

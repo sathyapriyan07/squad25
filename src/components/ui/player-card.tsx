@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   Box,
   Button,
+  ButtonBase,
   Card,
   CardContent,
   IconButton,
@@ -27,6 +28,7 @@ export interface PlayerCardProps {
   selectedActionLabel?: string;
   showAction?: boolean;
   compact?: boolean;
+  cardStyle?: 'standard' | 'directory';
 }
 
 function PlayerCard({
@@ -41,6 +43,7 @@ function PlayerCard({
   selectedActionLabel = 'Added to Squad',
   showAction = Boolean(onSelect || onRemove),
   compact = false,
+  cardStyle = 'standard',
 }: PlayerCardProps) {
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const imageUrl = player.imageUrl?.trim() || '';
@@ -61,6 +64,7 @@ function PlayerCard({
     BOWL: 'Bowler',
   }[player.primaryRole];
   const originLabel = player.isOverseas ? 'Overseas' : 'Indian';
+  const isDirectoryCard = cardStyle === 'directory';
 
   const handleAction = () => {
     if (selected) {
@@ -79,14 +83,14 @@ function PlayerCard({
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        bgcolor: '#0B0D12',
-        border: `1px solid ${selected ? accentColor : 'rgba(255,255,255,0.09)'}`,
-        borderRadius: '18px',
+        bgcolor: isDirectoryCard ? 'transparent' : '#0B0D12',
+        border: isDirectoryCard ? 'none' : `1px solid ${selected ? accentColor : 'rgba(255,255,255,0.09)'}`,
+        borderRadius: isDirectoryCard ? '10px' : '18px',
         opacity: isUnavailable && !selected ? 0.72 : 1,
         transition: 'border-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease',
         '&:hover': {
-          borderColor: selected ? accentColor : 'rgba(255,255,255,0.22)',
-          boxShadow: selected ? `0 0 0 1px ${accentColor}33` : '0 10px 24px rgba(0,0,0,0.24)',
+          borderColor: isDirectoryCard ? 'transparent' : selected ? accentColor : 'rgba(255,255,255,0.22)',
+          boxShadow: selected ? `0 0 0 1px ${accentColor}33` : isDirectoryCard ? 'none' : '0 10px 24px rgba(0,0,0,0.24)',
         },
         '&:hover .player-card-image': {
           transform: 'scale(1.045)',
@@ -101,9 +105,13 @@ function PlayerCard({
         sx={{
           position: 'relative',
           flexShrink: 0,
-          height: compact ? { xs: 125, sm: 140, md: 155 } : { xs: 175, sm: 200, md: 230 },
+          height: isDirectoryCard ? 'auto' : compact ? { xs: 125, sm: 140, md: 155 } : { xs: 175, sm: 200, md: 230 },
+          aspectRatio: isDirectoryCard ? '4 / 3' : undefined,
           overflow: 'hidden',
-          bgcolor: '#11151C',
+          bgcolor: isDirectoryCard ? '#03162B' : '#11151C',
+          backgroundImage: isDirectoryCard
+            ? 'repeating-conic-gradient(from 15deg at 50% 60%, rgba(28,114,154,0.16) 0deg 14deg, transparent 14deg 29deg)'
+            : 'none',
         }}
       >
         {showImage ? (
@@ -119,8 +127,8 @@ function PlayerCard({
               display: 'block',
               width: '100%',
               height: '100%',
-              objectFit: 'cover',
-              objectPosition: 'center top',
+              objectFit: isDirectoryCard ? 'contain' : 'cover',
+              objectPosition: isDirectoryCard ? 'center bottom' : 'center top',
               transform: 'scale(1)',
               transition: 'transform 420ms ease',
               filter: isUnavailable && !selected ? 'grayscale(0.35)' : 'none',
@@ -135,26 +143,51 @@ function PlayerCard({
               height: '100%',
               display: 'grid',
               placeItems: 'center',
-              bgcolor: '#121720',
-              backgroundImage: `linear-gradient(145deg, ${accentColor}18, transparent 62%)`,
+              bgcolor: isDirectoryCard ? '#03162B' : '#121720',
+              backgroundImage: isDirectoryCard
+                ? 'repeating-conic-gradient(from 15deg at 50% 60%, rgba(28,114,154,0.16) 0deg 14deg, transparent 14deg 29deg)'
+                : `linear-gradient(145deg, ${accentColor}18, transparent 62%)`,
             }}
           >
-            <Typography sx={{ color: 'rgba(255,255,255,0.72)', fontSize: '3rem', fontWeight: 500 }}>
+            <Typography
+              sx={{
+                color: 'rgba(255,255,255,0.72)',
+                fontSize: isDirectoryCard ? '1.5rem' : '3rem',
+                fontWeight: 500,
+              }}
+            >
               {initials || 'IPL'}
             </Typography>
           </Box>
         )}
 
-        <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(180deg, rgba(5,7,10,0.32) 0%, transparent 34%, rgba(5,7,10,0.92) 100%)',
-            pointerEvents: 'none',
-          }}
-        />
+        {!isDirectoryCard && (
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(180deg, rgba(5,7,10,0.32) 0%, transparent 34%, rgba(5,7,10,0.92) 100%)',
+              pointerEvents: 'none',
+            }}
+          />
+        )}
 
-        {rating !== undefined && (
+        {isDirectoryCard ? (
+          <Stack sx={{ position: 'absolute', top: 8, left: 8, zIndex: 1, alignItems: 'flex-start' }} spacing={0}>
+            <Typography sx={{ color: 'rgba(255,255,255,0.78)', fontSize: '0.62rem', fontWeight: 600, lineHeight: 1 }}>
+              OVR
+            </Typography>
+            {rating !== undefined && (
+              <Typography
+                aria-label={`Overall rating ${rating}`}
+                className="tabular-nums"
+                sx={{ color: '#FFF', fontSize: '1.15rem', lineHeight: 1.1, fontWeight: 800 }}
+              >
+                {rating}
+              </Typography>
+            )}
+          </Stack>
+        ) : rating !== undefined && (
           <Typography
             aria-label={`Overall rating ${rating}`}
             className="tabular-nums"
@@ -172,7 +205,7 @@ function PlayerCard({
           </Typography>
         )}
 
-        {onViewDetails && (
+        {onViewDetails && !isDirectoryCard && (
           <Tooltip title={`View ${player.name}`}>
             <IconButton
               aria-label={`View ${player.name} profile`}
@@ -192,50 +225,77 @@ function PlayerCard({
           </Tooltip>
         )}
 
-        <Stack sx={{ position: 'absolute', right: 14, bottom: 12, left: 14 }} spacing={0.5}>
-          <Typography
-            variant={compact ? 'subtitle1' : 'h6'}
-            noWrap
-            sx={{
-              color: '#FFF',
-              fontWeight: 600,
-              fontSize: { xs: '0.84rem', sm: compact ? '0.88rem' : '1rem' },
-              lineHeight: 1.15,
-              textShadow: '0 1px 8px rgba(0,0,0,0.5)',
-            }}
-          >
-            {player.name}
-          </Typography>
-          <Typography variant="caption" noWrap sx={{ color: 'rgba(255,255,255,0.82)', fontSize: '0.58rem' }}>
-            {getCountryFlagEmoji(player.countryFlag || '')} {player.nationality || 'Nationality not listed'} · {roleLabel} · {originLabel}
-          </Typography>
-        </Stack>
+        {!isDirectoryCard && (
+          <Stack sx={{ position: 'absolute', right: 14, bottom: 12, left: 14 }} spacing={0.5}>
+            <Typography
+              variant={compact ? 'subtitle1' : 'h6'}
+              noWrap
+              sx={{
+                color: '#FFF',
+                fontWeight: 600,
+                fontSize: { xs: '0.84rem', sm: compact ? '0.88rem' : '1rem' },
+                lineHeight: 1.15,
+                textShadow: '0 1px 8px rgba(0,0,0,0.5)',
+              }}
+            >
+              {player.name}
+            </Typography>
+            <Typography variant="caption" noWrap sx={{ color: 'rgba(255,255,255,0.82)', fontSize: '0.58rem' }}>
+              {getCountryFlagEmoji(player.countryFlag || '')} {player.nationality || 'Nationality not listed'} · {roleLabel} · {originLabel}
+            </Typography>
+          </Stack>
+        )}
       </Box>
 
       <CardContent
         sx={{
-          p: compact ? 1.25 : 1.5,
+          p: isDirectoryCard ? 0 : compact ? 1.25 : 1.5,
+          pt: isDirectoryCard ? 1.1 : undefined,
           display: 'flex',
           flexDirection: 'column',
           gap: compact ? 0.75 : 1,
           flex: 1,
-          '&:last-child': { pb: compact ? 1.25 : 1.5 },
+          '&:last-child': { pb: isDirectoryCard ? 0 : compact ? 1.25 : 1.5 },
         }}
       >
-        <Stack spacing={0.75}>
-          <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.62rem' }}>Batting</Typography>
-            <Typography variant="body2" noWrap sx={{ maxWidth: '72%', textAlign: 'right', fontSize: '0.68rem' }}>
-              {player.battingStyle?.trim() || '—'}
-            </Typography>
+        {isDirectoryCard ? (
+          <ButtonBase
+            disabled={!onViewDetails}
+            onClick={() => onViewDetails?.(player)}
+            aria-label={`View ${player.name} profile`}
+            sx={{
+              width: '100%',
+              justifyContent: 'flex-start',
+              borderRadius: 1,
+              textAlign: 'left',
+              '&.Mui-disabled': { color: 'inherit' },
+            }}
+          >
+            <Stack spacing={0.1} sx={{ minWidth: 0 }}>
+              <Typography variant="h6" noWrap sx={{ color: '#FFF', fontSize: '0.84rem', fontWeight: 700, lineHeight: 1.15 }}>
+                {player.name}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.68)', fontSize: '0.68rem' }}>
+                {roleLabel}
+              </Typography>
+            </Stack>
+          </ButtonBase>
+        ) : (
+          <Stack spacing={0.75}>
+            <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.62rem' }}>Batting</Typography>
+              <Typography variant="body2" noWrap sx={{ maxWidth: '72%', textAlign: 'right', fontSize: '0.68rem' }}>
+                {player.battingStyle?.trim() || '—'}
+              </Typography>
+            </Stack>
+            <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.62rem' }}>Bowling</Typography>
+              <Typography variant="body2" noWrap sx={{ maxWidth: '72%', textAlign: 'right', fontSize: '0.68rem' }}>
+                {player.bowlingStyle?.trim() || '—'}
+              </Typography>
+            </Stack>
           </Stack>
-          <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.62rem' }}>Bowling</Typography>
-            <Typography variant="body2" noWrap sx={{ maxWidth: '72%', textAlign: 'right', fontSize: '0.68rem' }}>
-              {player.bowlingStyle?.trim() || '—'}
-            </Typography>
-          </Stack>
-        </Stack>
+        )}
 
         {showAction && (
           <Tooltip
