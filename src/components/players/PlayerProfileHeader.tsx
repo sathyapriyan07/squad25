@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Box, Card, CardContent, Grid, Stack, Typography } from '@mui/material';
+import { Box, Grid, Stack, Typography } from '@mui/material';
 import { getCountryFlagEmoji } from '../common/PlayerAvatar';
 import { TeamLogo } from '../common/TeamLogo';
 import type { PlayerWithDetails, Team } from '../../types/ipl';
@@ -40,15 +40,7 @@ export function PlayerProfileHeader({
     .join('');
 
   return (
-    <Card
-      sx={{
-        overflow: 'hidden',
-        borderColor: `${accentColor}55`,
-        backgroundColor: '#10141C',
-        borderRadius: '18px',
-        boxShadow: '0 18px 44px rgba(0,0,0,0.28)',
-      }}
-    >
+    <Box component="section" sx={{ overflow: 'hidden' }}>
       <Grid container sx={{ minHeight: { md: 290 } }}>
         <Grid size={{ xs: 12, md: 4 }}>
           <Box
@@ -57,7 +49,7 @@ export function PlayerProfileHeader({
               height: { xs: 240, sm: 280, md: '100%' },
               minHeight: { md: 290 },
               overflow: 'hidden',
-              bgcolor: '#0A0D12',
+              bgcolor: '#090B10',
             }}
           >
             {showImage ? (
@@ -72,8 +64,8 @@ export function PlayerProfileHeader({
                   display: 'block',
                   width: '100%',
                   height: '100%',
-                  objectFit: 'cover',
-                  objectPosition: 'center 18%',
+                  objectFit: 'contain',
+                  objectPosition: 'center',
                 }}
               />
             ) : (
@@ -94,37 +86,21 @@ export function PlayerProfileHeader({
               </Box>
             )}
             <Box
+              aria-hidden="true"
               sx={{
                 position: 'absolute',
-                inset: 0,
-                background: {
-                  xs: 'linear-gradient(180deg, transparent 38%, rgba(5,7,10,0.92) 100%)',
-                  md: 'linear-gradient(90deg, transparent 58%, #10141C 100%), linear-gradient(180deg, transparent 48%, rgba(5,7,10,0.72) 100%)',
-                },
+                right: 0,
+                bottom: 0,
+                left: 0,
+                height: 100,
+                background: 'linear-gradient(0deg, #090B10 0%, rgba(9,11,16,0.72) 42%, rgba(9,11,16,0) 100%)',
                 pointerEvents: 'none',
               }}
             />
-            <Stack
-              spacing={0.35}
-              sx={{
-                position: 'absolute',
-                left: 18,
-                bottom: 16,
-                color: '#FFF',
-                textShadow: '0 2px 10px rgba(0,0,0,0.82)',
-              }}
-            >
-              <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: '0.02em' }}>
-                {getCountryFlagEmoji(player.countryFlag || '')} {player.nationality || 'Nationality not recorded'}
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.78)' }}>
-                {player.isCapped ? 'Capped player' : 'Uncapped player'}
-              </Typography>
-            </Stack>
           </Box>
         </Grid>
         <Grid size={{ xs: 12, md: 8 }}>
-          <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 }, height: '100%', boxSizing: 'border-box' }}>
+          <Box sx={{ p: { xs: 2, sm: 2.5, md: 3 }, height: '100%', boxSizing: 'border-box' }}>
             <Stack spacing={2} sx={{ height: '100%' }}>
               <Box>
                 <Stack direction="row" spacing={2} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
@@ -200,9 +176,9 @@ export function PlayerProfileHeader({
                 </Stack>
               </Stack>
             </Stack>
-          </CardContent>
+          </Box>
         </Grid>
       </Grid>
-    </Card>
+    </Box>
   );
 }

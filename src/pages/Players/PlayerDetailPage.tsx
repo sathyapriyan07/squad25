@@ -163,46 +163,53 @@ function hasFieldingData(stats?: PlayerStatistics): boolean {
     .some((value) => Number.isFinite(value) && value > 0);
 }
 
-function PlayerStatList({ metrics, accentColor }: { metrics: Metric[]; accentColor: string }) {
+function PlayerStatList({ metrics }: { metrics: Metric[] }) {
   return (
-    <Stack
-      divider={<Divider />}
+    <Box
+      component="dl"
       sx={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
         border: '1px solid rgba(255,255,255,0.08)',
-        borderLeft: `2px solid ${accentColor}99`,
         borderRadius: '12px',
         overflow: 'hidden',
+        m: 0,
       }}
     >
-      {metrics.map((metric) => (
-        <Stack
+      {metrics.map((metric, index) => (
+        <Box
           key={metric.label}
-          direction="row"
-          spacing={2}
+          component="div"
           sx={{
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            gap: 0.5,
             px: { xs: 1.5, sm: 2 },
             py: 1.25,
             bgcolor: 'rgba(255,255,255,0.018)',
+            borderBottom: index < Math.floor((metrics.length - 1) / 2) * 2
+              ? '1px solid rgba(255,255,255,0.08)'
+              : 'none',
+            borderRight: index % 2 === 0 && index < metrics.length - 1
+              ? '1px solid rgba(255,255,255,0.08)'
+              : 'none',
           }}
         >
-          <Box sx={{ minWidth: 0 }}>
-            <Typography variant="body2" color="text.secondary">
-              {metric.label}
-            </Typography>
-            {metric.caption && (
-              <Typography variant="caption" color="text.secondary">
-                {metric.caption}
-              </Typography>
-            )}
-          </Box>
-          <Typography className="tabular-nums" variant="body1" sx={{ fontWeight: 700, textAlign: 'right' }}>
+          <Typography component="dt" variant="body2" color="text.secondary">
+            {metric.label}
+          </Typography>
+          <Typography component="dd" className="tabular-nums" variant="body1" sx={{ m: 0, fontWeight: 700 }}>
             {formatStat(metric.value)}
           </Typography>
-        </Stack>
+          {metric.caption && (
+            <Typography component="dd" variant="caption" color="text.secondary" sx={{ m: 0 }}>
+              {metric.caption}
+            </Typography>
+          )}
+        </Box>
       ))}
-    </Stack>
+    </Box>
   );
 }
 
@@ -564,7 +571,7 @@ export function PlayerDetailPage() {
         <Stack spacing={2.5}>
           <Box>
             <Typography variant="subtitle1" sx={{ mb: 1.25, fontWeight: 600 }}>IPL summary</Typography>
-            <PlayerStatList metrics={careerMetrics} accentColor={accentColor} />
+            <PlayerStatList metrics={careerMetrics} />
           </Box>
 
           <Grid container spacing={2}>
@@ -631,7 +638,6 @@ export function PlayerDetailPage() {
               <Typography variant="subtitle1" sx={{ mb: 1.25, fontWeight: 600 }}>Career batting statistics</Typography>
               {hasCareerBatting && careerStats ? (
                 <PlayerStatList
-                  accentColor={accentColor}
                   metrics={[
                     { label: 'Matches', value: careerStats.matches },
                     { label: 'Innings', value: careerStats.inningsBat },
@@ -712,7 +718,6 @@ export function PlayerDetailPage() {
               <Typography variant="subtitle1" sx={{ mb: 1.25, fontWeight: 600 }}>Career bowling statistics</Typography>
               {hasCareerBowling && careerStats ? (
                 <PlayerStatList
-                  accentColor={accentColor}
                   metrics={[
                     { label: 'Matches', value: careerStats.matches },
                     { label: 'Innings', value: careerStats.inningsBowl },
@@ -793,7 +798,6 @@ export function PlayerDetailPage() {
               <Typography variant="subtitle1" sx={{ mb: 1.25, fontWeight: 600 }}>Career fielding statistics</Typography>
               {hasFieldingData(careerStats) && careerStats ? (
                 <PlayerStatList
-                  accentColor={accentColor}
                   metrics={[
                     { label: 'Catches', value: careerStats.catches },
                     { label: 'Run outs', value: careerStats.runOuts },
@@ -837,7 +841,6 @@ export function PlayerDetailPage() {
       {tab === 'career' && (
         <Stack spacing={2.5}>
           <PlayerStatList
-            accentColor={accentColor}
             metrics={[
               { label: 'IPL debut', value: debutRecord?.season?.name || '—' },
               { label: 'Franchises represented', value: franchiseHistory.length },
@@ -917,7 +920,6 @@ export function PlayerDetailPage() {
           </Box>
 
           <PlayerStatList
-            accentColor={accentColor}
             metrics={[
               {
                 label: 'Best wicket season',
@@ -976,7 +978,6 @@ export function PlayerDetailPage() {
                 </Stack>
                 {selectedStatsSeason.stats ? (
                   <PlayerStatList
-                    accentColor={accentColor}
                     metrics={[
                       { label: 'Matches', value: selectedStatsSeason.stats.matches },
                       ...(hasBattingData(selectedStatsSeason.stats)
